@@ -44,11 +44,6 @@ def compute_energy(time): #Function that estimates the energy needed to travel f
 class Train(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        
-        #########################################
-        ### Manca il loading e unloading time ###
-        #########################################
-        
         self.battery_size = battery_size # [kWh] 
         self.remaining_energy = battery_size * random.uniform(0.6,1) #[kWh] - At the beginning of the simulation, the battery charge level of each vehicle is between 60% and 100% of the maximum
         self.capacity = 4 #Maximum number of unit loads which can be loaded on a tugger train

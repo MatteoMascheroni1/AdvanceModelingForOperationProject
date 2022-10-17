@@ -1,32 +1,14 @@
 from mesa import Agent, Model
 from mesa.time import BaseScheduler #BaseScheduler activates all the agents at each step, one agent at a time, in the order they were added to the scheduler
 import random
+import utils as u # Import useful functions
 
-def read_line_info(): #Function that imports the coordinates of the lines output points from a file
-    x = []
-    y = []
-    cycle_times = [] #Time [minutes] to produce one unit load
-    path = "./lines_info.csv"
-    h = open(path, "r")
-    line_count = 0
-    for line in h:
-        if line_count == 0: #Ensures that the first line (containing column names) is disregarded
-            line_count += 1
-            continue
-        a = line.split(',') #The elements of the list a are strings, corresponding to the comma-separated values in the line
-        x.append(float(a[1]))
-        y.append(float(a[2]))
-        cycle_times.append(float(a[3])) 
-    h.close()
-    return(x, y,cycle_times)
+path = "./lines_info.csv"
+lines_output_points_x, lines_output_points_y, lines_cycle_times, weights = u.read_line_info(path)
 
-#Parameters:
-warehouse_coord = [0,80] #x and y coordinates of the warehouse input point
-charging_stations_x = [0,0] #x coordinates of the first and second charging station, respectively
-charging_stations_y = [10,20] #y coordinates of the first and second charging station, respectively
-lines_output_points_x = read_line_info()[0]
-lines_output_points_y = read_line_info()[1]
-lines_cycle_times = read_line_info()[2]
+warehouse_coord = [0,80] 
+charging_stations_x = [0,0] 
+charging_stations_y = [10,20] 
 speed = 1.4 #[m/s] - Average speed meant to account for high-speed travel, low-speed turns, and acceleration/deceleration times
 battery_size = 4.8 #kWh
 
