@@ -6,7 +6,7 @@ def read_line_info(): #Function that imports the coordinates of the lines output
     x = []
     y = []
     cycle_times = [] #Time [minutes] to produce one unit load
-    path = "./lines_info.csv"
+    path = "lines_info.csv"
     h = open(path, "r")
     line_count = 0
     for line in h:
@@ -78,13 +78,13 @@ class Train(Agent):
         
         if self.need_to_charge == False: #If the next stop is not a charging station
             if (self.pos_x,self.pos_y) != (warehouse_coord[0],warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
-                if self.model.schedule_lines.agents[self.next_line].ul_in_buffer >= 1: #If there is at least one unit load at the line output point
+                if self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
                     if self.load < self.capacity: # If the train is not full, it loads one unit load
                         print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
                         loading_time = random.uniform(0.5, 1) #Loading time (between 30 seconds and 1 minute)
                         self.task_endtime += loading_time
                         self.remaining_energy -= compute_energy(loading_time)
-                        self.model.schedule_lines.agents[self.next_line].ul_in_buffer -= 1
+                        self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
                         self.load += 1
                     else:
                         print("\n"+self.unique_id,"going to line",self.next_line,"- Not enough loading capacity left") 
@@ -146,17 +146,17 @@ class Line(Agent):
         self.line_index = int(self.unique_id[-1]) #The last character in the unique_id is the number indicating the line (see FactoryModel)
         self.cycle_time = lines_cycle_times[self.line_index] #Production time of one unit load (minutes)
         self.buffer_size = 3 #Maximum number of unit Loads in the buffer at the line output point
-        self.ul_in_buffer = 0 #Actual number of unit loads in the buffer at the line output point. The buffer is empty at the beginning of the simulation 
+        self.UL_in_buffer = 0 #Actual number of unit loads in the buffer at the line output point. The buffer is empty at the beginning of the simulation 
         self.total_production = 0 #Overall number of unit loads produced by the line
         self.idle_time = 0 #Time (minutes) during which the station is not producing since the buffer is full
         self.count_time = 0 #Attribute needed to simulate the production of one unit load "every cycle time" (see the step function)
 
     def step(self):
-        if self.ul_in_buffer < self.buffer_size: #If the buffer at the output point is not full
+        if self.UL_in_buffer < self.buffer_size: #If the buffer at the output point is not full
             self.count_time += 1
             if self.count_time == self.cycle_time:    
                 self.total_production += 1
-                self.ul_in_buffer += 1
+                self.UL_in_buffer += 1
                 self.count_time = 0
         else:
             self.idle_time += 1
@@ -170,15 +170,7 @@ class FactoryModel(Model):
         self.system_time = 0 #This attribute will keep track of the system time, advancing by 1 minute at each step
         
         #Creating tugger trains, charging stations and lines:
-        
-        ######################################
-        ### Select number of tugger trains ### -> l'ho aggiunto io
-        ######################################
-        
-        self.tugger_number = 3
-        for i in range(self.tugger_number):
-            self.schedule_trains.add(Train("Tugger train_"+str(i+1), self))
-                                     
+        self.schedule_trains.add(Train("Tugger train_1", self))
 
         for i in range(len(charging_stations_x)):
             a = ChargingStation("Charging station_"+str(i), self)
