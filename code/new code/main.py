@@ -8,9 +8,22 @@ import utils as u
 #################################
 
 path = "./lines_info.csv"
-lines_output_points_x, lines_output_points_y, lines_cycle_times, lines_weight = u.read_line_info(path)
+lines_output_points_x, lines_output_points_y, lines_CT, lines_weight = u.read_line_info(path)
 
-#Parameters:
+
+# Conversion CT to sec
+lines_cycle_times = []
+for time in lines_CT:
+    lines_cycle_times.append(time*60)
+
+
+
+##################
+### Parameters ###
+##################
+
+n_shift = 2 # Shifts per day
+wh = 8 # Working Hours per shift
 warehouse_coord = [0,80] #x and y coordinates of the warehouse input point
 charging_stations_x = [0,0] #x coordinates of the first and second charging station, respectively
 charging_stations_y = [10,20] #y coordinates of the first and second charging station, respectively
@@ -59,7 +72,7 @@ class Train(Agent):
                 if self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
                     if self.load < self.capacity: # If the train is not full, it loads one unit load
                         print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
-                        loading_time = random.uniform(0.5, 1) #Loading time (between 30 seconds and 1 minute)
+                        loading_time = random.uniform(30, 60) #Loading time (between 30 seconds and 1 minute)
                         self.task_endtime += loading_time
                         self.remaining_energy -= u.compute_energy(loading_time)
                         self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
@@ -68,18 +81,23 @@ class Train(Agent):
                         print("\n"+self.unique_id,"going to line",self.next_line,"- Not enough loading capacity left") 
                 else:
                    print("\n"+self.unique_id,"going to line",self.next_line,"- No unit loads to be picked up")
-                self.next_line += 1
+                #self.next_line += 1
             else:
                 print("\n"+self.unique_id,"going back to the warehouse and unloading",self.load,"unit loads")
-                unloading_time = 0.5 + random.uniform(0.5, 1)*self.load #Fixed time to stop the vehicle in the right position (30 seconds) + unloading time for each unit load (between 30 seconds and 1 minute)
+                unloading_time = 30 + random.uniform(30, 60)*self.load #Fixed time to stop the vehicle in the right position (30 seconds) + unloading time for each unit load (between 30 seconds and 1 minute)
                 self.task_endtime += unloading_time
                 self.remaining_energy -= u.compute_energy(unloading_time)
                 self.load = 0
         
-            if self.next_line > 4:
+            if self.next_line >= 4:
                 self.next_stop_x = warehouse_coord[0]
-                self.next_stop_y = warehouse_coord[1]   
-        print("Travelled distance:",distance_next_stop,"m","- Task endtime (hours):",round(self.task_endtime/60,2),"- Remaining energy:",round(self.remaining_energy,2),"kWh")
+                self.next_stop_y = warehouse_coord[1]
+
+            else: # Added
+                self.next_line += 1
+                self.next_stop_x = lines_output_points_x[self.next_line]
+                self.next_stop_y = lines_output_points_y[self.next_line]
+        print("Travelled distance:",distance_next_stop,"m","- Task endtime (hours):",round(self.task_endtime/3600,2),"- Remaining energy:",round(self.remaining_energy,2),"kWh")
         
     def charging(self): #Function that simulates the (possible) queuing at the charging station and the battery charging:
         print("\n"+self.unique_id,'charging at charging station',self.selected_charging_station)
@@ -88,14 +106,12 @@ class Train(Agent):
         self.task_endtime += self.model.schedule_stations.agents[self.selected_charging_station].waiting_time #schedule_stations.agents contains the list of all ChargingStation agents
         
         charging_size = self.battery_size - self.remaining_energy #It is assumed to restore the maximum battery level
-        self.remaining_energy += charging_size
         power = 4.9 #[kW] - Power of the charging station
-        charging_time = (charging_size/power)*60  # minutes
+        charging_time = (charging_size/power)*3600  # seconds
+        self.remaining_energy += charging_size
         self.model.schedule_stations.agents[self.selected_charging_station].waiting_time += charging_time
-        self.task_endtime += charging_time 
-        
-        print("Task endtime (hours):",round(self.task_endtime/60,2),"- Remaining energy:",self.remaining_energy, "kWh")
-        
+        self.task_endtime += charging_time
+        print("Task endtime (hours):",round(self.task_endtime/3600,2),"- Remaining energy:",self.remaining_energy, "kWh")
         self.next_line = 0
         self.need_to_charge = False
         
@@ -103,9 +119,11 @@ class Train(Agent):
         if self.task_endtime <= self.model.system_time:
             if (self.pos_x,self.pos_y) == (warehouse_coord[0],warehouse_coord[1]):
                 self.check_charge()
-            self.move()
             if self.need_to_charge == True:
                 self.charging()
+            else:
+                self.move()
+
 
 class ChargingStation(Agent):
     def __init__(self, unique_id, model):
@@ -116,7 +134,7 @@ class ChargingStation(Agent):
         if self.waiting_time >= 1: #1 is the step duration
             self.waiting_time -= 1 #1 is the step duration
         else:
-            self.waiting_time = 0
+            self.waiting_time = 0 # Potrebbe essere inutile?
 
 class Line(Agent):
     def __init__(self, unique_id, model):
@@ -162,13 +180,13 @@ class FactoryModel(Model):
         self.schedule_lines.step()
         self.schedule_trains.step()
         self.schedule_stations.step()
-        self.system_time += 1 #HP: 1 step = 1 minute
+        self.system_time += 1 # HP: 1 step = 1 minute
 
 #Running the simulation:    
 model = FactoryModel()
-for i in range(960):  #Simulation of 2 shifts -> 16 hours -> 960 minutes (each step corresponds to 1 minute)
+for i in range(n_shift*wh*3600):  # Seconds
     model.step()
 
 print("\n","\n","SYSTEM PERFORMANCE:")
 for i in range(5): #5 is the number of lines in the factory
-    print(" Line",i,"\n","Actual production [UL]:",model.schedule_lines.agents[i].total_production," -  Maximum production [UL]:",int(model.system_time/lines_cycle_times[i]),"\n","Total idle time [min]:",model.schedule_lines.agents[i].idle_time,"\n")
+    print(" Line",i,"\n","Actual production [UL]:",model.schedule_lines.agents[i].total_production," -  Maximum production [UL]:",int(model.system_time/lines_cycle_times[i]),"\n","Total idle time [sec]:",model.schedule_lines.agents[i].idle_time,"\n")

@@ -1,4 +1,9 @@
 import random
+# Parameters
+max_x = 75 # Extreme right point of tugger train path
+
+
+
 
 def read_line_info(path:str): 
     '''
@@ -27,22 +32,32 @@ def read_line_info(path:str):
 
 
 
-def compute_distance(x1:float, x2:float, y1:float, y2:float):
+def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
     '''
     x1:float, x2:float, y1:float, y2:float
     
-    Return rectilinear distance between two points.
+    Return rectilinear distance between two points. The if condition is to avoid the miscalculation of distance between station 3 e 4.
     
     Return
     -------
     float distance
     '''
+
+    if y2 > y1:
+        return abs(max_x - x1) + (max_x - x2) + abs(y1 - y2)
+    else:
+        return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2)
     return abs(x1 - x2) + abs(y1 - y2)
 
 
 
+'''
+def compute_speed(weight:float):
+    speed = funct
+    return speed
+'''
 
-def compute_time(distance:float, speed:float):
+def compute_time(distance:float, speed = 1.4):
     '''
     distance:float, speed:float
     
@@ -53,22 +68,22 @@ def compute_time(distance:float, speed:float):
     -------
     float time
     '''
-    time = distance/speed/60 + random.uniform(0,60)
+    time = distance/speed + random.uniform(0,60)
     return  time #[seconds]
 
 
 
 
-def compute_energy(time:float, consumption:float):
+def compute_energy(time:float, consumption = 2.6):
     '''
     time:float
-    consumption:float [kw/h]
+    consumption: [kwh]
+    Consumption is defined as average consumption by EN standard.
     
-    Return energy consumed 
-    
-    Return
+    Return energy consumed.
+
     -------
     float energy
     '''
-    energy = 2.6 / 60 * time  # HP: average energy consumption = 2,6 kWh every 60 minutes (both when the tugger train is travelling and when it is loading/unloading unit loads)
+    energy = consumption / 60 * time/60
     return energy
