@@ -5,9 +5,10 @@ max_x = 75 # Extreme right point of tugger train path
 
 
 
-def read_line_info(path:str): 
+def read_line_info(path:str, conversion_factor = 60):
     '''
     path:str path to the file
+    conversion_factor: adjust measure unit
     Read a file and returns line coordinates, cycle times[min] and weights for each line.
     
     Return
@@ -25,7 +26,7 @@ def read_line_info(path:str):
             a = line.split(',') #The elements of the list a are strings, corresponding to the comma-separated values in the line
             x.append(float(a[1]))
             y.append(float(a[2]))
-            cycle_times.append(float(a[3])*60)
+            cycle_times.append(float(a[3])*conversion_factor)
             weights.append(float(a[4]))
     return (x, y, cycle_times, weights)
 
@@ -69,7 +70,7 @@ def compute_time(distance:float, speed = 1.4):
     float time
     '''
     time = distance/speed + random.uniform(0,60)
-    return  time #[seconds]
+    return time #[seconds]
 
 
 

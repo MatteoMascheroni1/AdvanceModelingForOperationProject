@@ -8,15 +8,7 @@ import utils as u
 #################################
 
 path = "./lines_info.csv"
-lines_output_points_x, lines_output_points_y, lines_CT, lines_weight = u.read_line_info(path)
-
-
-# Conversion CT to sec
-lines_cycle_times = []
-for time in lines_CT:
-    lines_cycle_times.append(time*60)
-
-
+lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight = u.read_line_info(path)
 
 ##################
 ### Parameters ###
@@ -29,6 +21,7 @@ charging_stations_x = [0,0] #x coordinates of the first and second charging stat
 charging_stations_y = [10,20] #y coordinates of the first and second charging station, respectively
 speed = 1.4 #[m/s] - Average speed meant to account for high-speed travel, low-speed turns, and acceleration/deceleration times
 battery_size = 4.8 #kWh
+
 
 
 
@@ -47,6 +40,8 @@ class Train(Agent):
         self.next_line = 0 #Id of the next line output point to be visited
         self.need_to_charge = False #This attribute will be True if the vehicle needs to charge
         self.selected_charging_station = None #This attribute will be updated with the ID of the charging station where the vehicle is going to charge
+        self.weight_capacity = 2000
+        self.weight = 0
                        
     def check_charge(self): #Function that checks if the vehicle battery level is enough to perform the following pick-up tour
         if self.remaining_energy < 0.4*self.battery_size:
@@ -70,13 +65,18 @@ class Train(Agent):
         if self.need_to_charge == False: #If the next stop is not a charging station
             if (self.pos_x,self.pos_y) != (warehouse_coord[0],warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
                 if self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
-                    if self.load < self.capacity: # If the train is not full, it loads one unit load
-                        print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
-                        loading_time = random.uniform(30, 60) #Loading time (between 30 seconds and 1 minute)
-                        self.task_endtime += loading_time
-                        self.remaining_energy -= u.compute_energy(loading_time)
-                        self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
-                        self.load += 1
+                    if self.load < self.capacity:
+                        self.weight += output_weight[self.next_line]
+                        if self.weight < self.weight_capacity:# If the train is not full, it loads one unit load
+                            print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
+                            loading_time = random.uniform(30, 60) #Loading time (between 30 seconds and 1 minute)
+                            self.task_endtime += loading_time
+                            self.remaining_energy -= u.compute_energy(loading_time)
+                            self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
+                            self.load += 1
+                        else:
+                            print("\n" + self.unique_id, "- Not enough weight capacity left.")
+
                     else:
                         print("\n"+self.unique_id,"going to line",self.next_line,"- Not enough loading capacity left") 
                 else:
@@ -88,6 +88,7 @@ class Train(Agent):
                 self.task_endtime += unloading_time
                 self.remaining_energy -= u.compute_energy(unloading_time)
                 self.load = 0
+                self.weight=0
         
             if self.next_line >= 4:
                 self.next_stop_x = warehouse_coord[0]
@@ -97,7 +98,7 @@ class Train(Agent):
                 self.next_line += 1
                 self.next_stop_x = lines_output_points_x[self.next_line]
                 self.next_stop_y = lines_output_points_y[self.next_line]
-        print("Travelled distance:",distance_next_stop,"m","- Task endtime (hours):",round(self.task_endtime/3600,2),"- Remaining energy:",round(self.remaining_energy,2),"kWh")
+        print("Travelled distance:",distance_next_stop,"m","- Task endtime (hours):",round(self.task_endtime/3600,2),"- Remaining energy:",round(self.remaining_energy,2),"kWh", " - Carried weight: ", self.weight)
         
     def charging(self): #Function that simulates the (possible) queuing at the charging station and the battery charging:
         print("\n"+self.unique_id,'charging at charging station',self.selected_charging_station)
@@ -177,10 +178,11 @@ class FactoryModel(Model):
             self.schedule_lines.add(a)
             
     def step(self):
+        self.system_time += 1
+        #print("System time: " + str(self.system_time))
         self.schedule_lines.step()
         self.schedule_trains.step()
         self.schedule_stations.step()
-        self.system_time += 1 # HP: 1 step = 1 minute
 
 #Running the simulation:    
 model = FactoryModel()
