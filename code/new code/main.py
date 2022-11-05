@@ -56,7 +56,7 @@ class Train(Agent):
             
     def move(self): #Function that simulates the travel of the tugger train to the next stop and the loading/unloading of unit loads:
         distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-        self.task_endtime += u.compute_time(distance_next_stop, next_line = self.next_line) #Travel time
+        self.task_endtime += u.compute_time(distance_next_stop, speed=u.compute_speed(self.weight), next_line = self.next_line) #Travel time
         self.remaining_energy -= u.compute_energy(u.compute_time(distance_next_stop))
         
         self.pos_x = self.next_stop_x
@@ -71,7 +71,7 @@ class Train(Agent):
                             print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
                             loading_time = random.uniform(30, 60) #Loading time (between 30 seconds and 1 minute)
                             self.task_endtime += loading_time
-                            self.remaining_energy -= u.compute_energy(loading_time)
+                            self.remaining_energy -= u.compute_energy_loading(output_weight[self.next_line])
                             self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
                             self.load += 1
                         else:
@@ -86,7 +86,7 @@ class Train(Agent):
                 print("\n"+self.unique_id,"going back to the warehouse and unloading",self.load,"unit loads")
                 unloading_time = 30 + random.uniform(30, 60)*self.load #Fixed time to stop the vehicle in the right position (30 seconds) + unloading time for each unit load (between 30 seconds and 1 minute)
                 self.task_endtime += unloading_time
-                self.remaining_energy -= u.compute_energy(unloading_time)
+                self.remaining_energy -= u.compute_energy_loading(self.weight)
                 self.load = 0
                 self.weight=0
         

@@ -75,7 +75,7 @@ def compute_speed(weight:float, max_weight:float = 2000):
     return 1.6 - weight/max_weight * (speed_max - speed_min)
 
 
-def compute_time(distance:float, speed = 1.4, nextline:int = 0):
+def compute_time(distance:float, speed, nextline:int = 0):
     '''
     distance:float, speed:float
     
@@ -87,11 +87,12 @@ def compute_time(distance:float, speed = 1.4, nextline:int = 0):
     -------
     float time [s]
     '''
-
+    # fixed amount for accelerating is taken from LTX_20_T04_50_iGo_EN_TD.pdf page 2, acceleration time for the
+    # truck with the same towing capacity
     if nextline == 1 or 2 or 4:
-        return distance/speed + random.uniform(1.0, 2.0) * distance + 5
+        return distance/speed + random.uniform(1.0, 2.0) * distance + 8
     else:
-        return distance/speed + random.uniform(0.0, 1.0) * distance + 5
+        return distance/speed + random.uniform(0.0, 1.0) * distance + 8
 
 
 
@@ -107,5 +108,20 @@ def compute_energy(time:float, consumption = 2.6):
     -------
     float energy
     '''
-    energy = consumption / 60 * time/60
+    energy = consumption / 3600 * time
     return energy
+
+def compute_energy_loading( weight:float):
+    '''
+
+    Parameters
+    weight:float
+
+    Returns energy consumed to load and unload the pallet loads, computed on the distance moved
+    and the weight of the pallet
+
+    Returns
+    float: energy consumed [kWh]
+
+    '''
+    return (1,2 * weight * 9.81 / 3600000)*1,2
