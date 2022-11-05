@@ -59,18 +59,23 @@ def compute_speed(weight:float):
 '''
 # Dove possiamo mettere la fase di accellerazione e decellerazione, qui oppure in compute time
 # meglio in compute time
-def compute_speed(weight:float):
+def compute_speed(weight:float, max_weight:float = 2000):
     '''
     weight:float
 
-    Return the speed [m/s] of a train considering the weight is transporting
+    Return the speed [m/s] of a train considering the weight is transporting, it supposes that the velocity
+    decrease linearly with the load
 
     Returns
     -------
     float speed [m/s]
     '''
+    speed_min = 1.2
+    speed_max = 1.6
+    return 1.6 - weight/max_weight * (speed_max - speed_min)
 
-def compute_time(distance:float, speed = 1.4, next_line:int = 6):
+
+def compute_time(distance:float, speed = 1.4, nextline:int = 0):
     '''
     distance:float, speed:float
     
@@ -83,7 +88,7 @@ def compute_time(distance:float, speed = 1.4, next_line:int = 6):
     float time [s]
     '''
 
-    if next_line == 1 or 2 or 4:
+    if nextline == 1 or 2 or 4:
         return distance/speed + random.uniform(1.0, 2.0) * distance + 5
     else:
         return distance/speed + random.uniform(0.0, 1.0) * distance + 5
