@@ -56,7 +56,7 @@ class Train(Agent):
             
     def move(self): #Function that simulates the travel of the tugger train to the next stop and the loading/unloading of unit loads:
         distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-        self.task_endtime += u.compute_time(distance_next_stop) #Travel time
+        self.task_endtime += u.compute_time(distance_next_stop, next_line = self.next_line) #Travel time
         self.remaining_energy -= u.compute_energy(u.compute_time(distance_next_stop))
         
         self.pos_x = self.next_stop_x

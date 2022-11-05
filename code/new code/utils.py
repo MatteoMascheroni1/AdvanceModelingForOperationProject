@@ -57,20 +57,39 @@ def compute_speed(weight:float):
     speed = funct
     return speed
 '''
+# Dove possiamo mettere la fase di accellerazione e decellerazione, qui oppure in compute time
+# meglio in compute time
+def compute_speed(weight:float):
+    '''
+    weight:float
 
-def compute_time(distance:float, speed = 1.4):
+    Return the speed [m/s] of a train considering the weight is transporting
+
+    Returns
+    -------
+    float speed [m/s]
+    '''
+
+def compute_time(distance:float, speed = 1.4, next_line:int = 6):
     '''
     distance:float, speed:float
     
-    Return time to travel a distance given a certain speed. Random component is distributed as ~unif(0,60) secondi.
+    Return time to travel a distance given a certain speed [m/s]. Random component is distributed as ~unif(0,60) secondi.
     Distance is expressed in [m] and speed in [m/s]
     
     Return
     -------
-    float time
+    float time [s]
     '''
-    time = distance/speed + random.uniform(0,60)
-    return time #[seconds]
+
+    # 2. Possiamo mettere fase di accelerazione e decellerazione, per fermata e anche per le curve, se mettamo la fermata
+    #    dobbiamo considerare che quando passa da un buffer non pieno non si deve fermare
+    # fattore casuale di ritardo che moltiplica distance/speed
+    # fattore fisso di ritardo
+    if next_line == 1 or 2 or 4:
+        return distance/speed + random.uniform(1.0, 2.0) * distance
+    else:
+        return distance/speed + random.uniform(0.0, 1.0) * distance
 
 
 
