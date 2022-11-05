@@ -28,3 +28,7 @@ scheduler, ieri sera ho smattato**
 * Abbiamo aggiunto il controllo sul peso
 * Aggiornato la distanza e la velocità nel modulo utils, al momento la velocità è una costante ma si potrà passare una variabile qualunque (quindi anche renderla dipendente dal peso)
 * Abbiamo rimosso momentaneamente il data collector e il batch runner perchè secondo noi era inutile.
+
+
+## Aggiornamento 05/11
+* Fixato la condizione sul peso, ora controlla prima di aggiornare self.weight e se passa la condizione allora lo aggiorna definitivamente. Controllato anche l'inizializzazione di self.weight = 0 quando fa l'unloading.

@@ -66,14 +66,14 @@ class Train(Agent):
             if (self.pos_x,self.pos_y) != (warehouse_coord[0],warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
                 if self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
                     if self.load < self.capacity:
-                        self.weight += output_weight[self.next_line]
-                        if self.weight < self.weight_capacity:# If the train is not full, it loads one unit load
+                        if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:# If the train is not full, it loads one unit load
                             print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
                             loading_time = random.uniform(30, 60) #Loading time (between 30 seconds and 1 minute)
                             self.task_endtime += loading_time
                             self.remaining_energy -= u.compute_energy_loading(output_weight[self.next_line])
                             self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
                             self.load += 1
+                            self.weight += output_weight[self.next_line]
                         else:
                             print("\n" + self.unique_id, "- Not enough weight capacity left.")
 

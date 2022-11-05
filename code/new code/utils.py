@@ -52,11 +52,7 @@ def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
 
 
 
-'''
-def compute_speed(weight:float):
-    speed = funct
-    return speed
-'''
+
 # Dove possiamo mettere la fase di accellerazione e decellerazione, qui oppure in compute time
 # meglio in compute time
 def compute_speed(weight:float, max_weight:float = 2000):
@@ -64,7 +60,7 @@ def compute_speed(weight:float, max_weight:float = 2000):
     weight:float
 
     Return the speed [m/s] of a train considering the weight is transporting, it supposes that the velocity
-    decrease linearly with the load
+    decrease linearly with the load. Assume that speed_min = 1.2 m/s and speed_max = 1.6 m/s
 
     Returns
     -------
@@ -124,5 +120,5 @@ def compute_energy_loading(weight:float):
     float: energy consumed [kWh]
 
     '''
-    energy =  1.2 * weight * 9.81 / 3600000 * 1.2
+    energy = 1.2 * weight * 9.81 / 3600000 * 1.2
     return energy
