@@ -74,22 +74,19 @@ def compute_time(distance:float, speed = 1.4, next_line:int = 6):
     '''
     distance:float, speed:float
     
-    Return time to travel a distance given a certain speed [m/s]. Random component is distributed as ~unif(0,60) secondi.
-    Distance is expressed in [m] and speed in [m/s]
+    Return time to travel considering the distance [m] and the speed. The time is computed adding a random
+    delay depending on the final destination. It returns time in seconds [s]. There is a fixed amount of time
+    added considering acceleration and deceleration time.
     
     Return
     -------
     float time [s]
     '''
 
-    # 2. Possiamo mettere fase di accelerazione e decellerazione, per fermata e anche per le curve, se mettamo la fermata
-    #    dobbiamo considerare che quando passa da un buffer non pieno non si deve fermare
-    # fattore casuale di ritardo che moltiplica distance/speed
-    # fattore fisso di ritardo
     if next_line == 1 or 2 or 4:
-        return distance/speed + random.uniform(1.0, 2.0) * distance
+        return distance/speed + random.uniform(1.0, 2.0) * distance + 5
     else:
-        return distance/speed + random.uniform(0.0, 1.0) * distance
+        return distance/speed + random.uniform(0.0, 1.0) * distance + 5
 
 
 
