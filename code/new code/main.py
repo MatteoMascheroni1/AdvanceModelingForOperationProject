@@ -49,15 +49,15 @@ class Train(Agent):
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
             self.need_to_charge = True
-        else:
+        else: 
             self.next_line = 0
             self.next_stop_x = lines_output_points_x[self.next_line]
             self.next_stop_y = lines_output_points_y[self.next_line]
             
     def move(self): #Function that simulates the travel of the tugger train to the next stop and the loading/unloading of unit loads:
         distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-        self.task_endtime += u.compute_time(distance_next_stop, speed=u.compute_speed(self.weight), next_line = self.next_line) #Travel time
-        self.remaining_energy -= u.compute_energy(u.compute_time(distance_next_stop))
+        self.task_endtime += u.compute_time(distance_next_stop, speed = u.compute_speed(self.weight), nextline = self.next_line) #Travel time
+        self.remaining_energy -= u.compute_energy(u.compute_time(distance_next_stop,speed = u.compute_speed(self.weight), nextline = self.next_line,))
         
         self.pos_x = self.next_stop_x
         self.pos_y = self.next_stop_y

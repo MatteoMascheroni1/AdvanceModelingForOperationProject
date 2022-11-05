@@ -72,10 +72,10 @@ def compute_speed(weight:float, max_weight:float = 2000):
     '''
     speed_min = 1.2
     speed_max = 1.6
-    return 1.6 - weight/max_weight * (speed_max - speed_min)
+    speed = 1.6 - weight/max_weight * (speed_max - speed_min)
+    return speed
 
-
-def compute_time(distance:float, speed, nextline:int = 0):
+def compute_time(distance:float, speed:float, nextline:int = 0):
     '''
     distance:float, speed:float
     
@@ -111,7 +111,7 @@ def compute_energy(time:float, consumption = 2.6):
     energy = consumption / 3600 * time
     return energy
 
-def compute_energy_loading( weight:float):
+def compute_energy_loading(weight:float):
     '''
 
     Parameters
@@ -124,4 +124,5 @@ def compute_energy_loading( weight:float):
     float: energy consumed [kWh]
 
     '''
-    return (1,2 * weight * 9.81 / 3600000)*1,2
+    energy =  1.2 * weight * 9.81 / 3600000 * 1.2
+    return energy
