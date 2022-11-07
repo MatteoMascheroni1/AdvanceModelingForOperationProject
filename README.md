@@ -22,13 +22,19 @@ scheduler, ieri sera ho smattato**
 
 
 ## Aggiornamento 04/11
-
 * I tempi in secondi sono giusti
 * Abbiamo unificato tutte le versioni del codice
 * Abbiamo aggiunto il controllo sul peso
 * Aggiornato la distanza e la velocità nel modulo utils, al momento la velocità è una costante ma si potrà passare una variabile qualunque (quindi anche renderla dipendente dal peso)
 * Abbiamo rimosso momentaneamente il data collector e il batch runner perchè secondo noi era inutile.
 
-
 ## Aggiornamento 05/11
 * Fixato la condizione sul peso, ora controlla prima di aggiornare self.weight e se passa la condizione allora lo aggiorna definitivamente. Controllato anche l'inizializzazione di self.weight = 0 quando fa l'unloading.
+
+*Modificato il modo con il quale si calcola il tempo di percorrenza del tugger che deve essere path-dependent. Da notare la distinzione fatta tra zone affollate e non. 
+*Velocità costante modificata. Ora dipende linearmente dal carico del tugger. 
+*Metodo di computazione dell'energia: Due funzioni sono state create. 1) "compute_energy" va a calcolare l'energia nel movimento, dove la relazione con il peso entra in gioco attraverso la variabile tempo. 2) "compute_energy_loading" invece tiene conto del consumo dovuto allo spostamente del UL (1.2 coefficiente che tiene conto di della conversione energia elettrica - cinetica e attrito relative allo spostamento)
+
+## Aggiornamento 06/11
+* Fixato il movimento del tugger tra warehouse e stazione di ricarica. Prima si caricava direttamente alla WH. 
+* Fixato il calcolo distanza tra stazione di ricarica e prima linea. Prima saltava di netto la prima linea.  
