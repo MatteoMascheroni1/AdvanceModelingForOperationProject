@@ -48,9 +48,8 @@ def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
         return abs(max_x - x1) + (max_x - x2) + abs(y1 - y2)
     else:
         return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2)
+    
     return abs(x1 - x2) + abs(y1 - y2)
-
-
 
 
 # Dove possiamo mettere la fase di accellerazione e decellerazione, qui oppure in compute time

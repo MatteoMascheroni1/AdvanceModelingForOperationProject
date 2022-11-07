@@ -115,6 +115,8 @@ class Train(Agent):
         print("Task endtime (hours):",round(self.task_endtime/3600,2),"- Remaining energy:",self.remaining_energy, "kWh")
         self.next_line = 0
         self.need_to_charge = False
+        self.next_stop_x = lines_output_points_x[self.next_line]
+        self.next_stop_y = lines_output_points_y[self.next_line]
         
     def step(self):
         if self.task_endtime <= self.model.system_time:
@@ -122,6 +124,7 @@ class Train(Agent):
                 self.check_charge()
             if self.need_to_charge == True:
                 self.charging()
+                self.move()
             else:
                 self.move()
 
