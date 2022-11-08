@@ -35,9 +35,9 @@ def read_line_info(path:str, conversion_factor = 60):
 
 def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
     '''
-    x1:float, x2:float, y1:float, y2:float
+    x1:float, x2:float, y1:float, y2:float, max_x
     
-    Return rectilinear distance between two points. The if condition is to avoid the miscalculation of distance between station 3 e 4.
+    Return rectilinear distance between two points. The x_max is the correction factor to avoid the miscalculation of distance between station 3 e 4.
     
     Return
     -------
