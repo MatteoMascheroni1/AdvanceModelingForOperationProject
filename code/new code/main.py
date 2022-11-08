@@ -8,7 +8,10 @@ import utils as u
 #################################
 
 path = "./lines_info.csv"
-lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight = u.read_line_info(path)
+lines_output_points_x,\
+lines_output_points_y, \
+lines_cycle_times, \
+output_weight = u.read_line_info(path)
 
 ##################
 ### Parameters ###
