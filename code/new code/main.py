@@ -126,8 +126,8 @@ class Train(Agent):
             if (self.pos_x,self.pos_y) == (warehouse_coord[0],warehouse_coord[1]):
                 self.check_charge()
             if self.need_to_charge == True:
-                self.charging()
                 self.move()
+                self.charging()
             else:
                 self.move()
 
@@ -173,8 +173,10 @@ class FactoryModel(Model):
         self.system_time = 0 #This attribute will keep track of the system time, advancing by 1 minute at each step
         
         #Creating tugger trains, charging stations and lines:
-        self.schedule_trains.add(Train("Tugger train_1", self))
-
+        for i in range(1):
+            a = Train("Tugger train_" + str(i+1),self)
+            self.schedule_trains.add(a)
+            
         for i in range(len(charging_stations_x)):
             a = ChargingStation("Charging station_"+str(i), self)
             self.schedule_stations.add(a)
