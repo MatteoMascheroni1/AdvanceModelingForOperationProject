@@ -22,9 +22,7 @@ wh = 8 # Working Hours per shift
 warehouse_coord = [0,80] #x and y coordinates of the warehouse input point
 charging_stations_x = [0,0] #x coordinates of the first and second charging station, respectively
 charging_stations_y = [10,20] #y coordinates of the first and second charging station, respectively
-speed = 1.4 #[m/s] - Average speed meant to account for high-speed travel, low-speed turns, and acceleration/deceleration times
 battery_size = 4.8 #kWh
-
 
 
 
