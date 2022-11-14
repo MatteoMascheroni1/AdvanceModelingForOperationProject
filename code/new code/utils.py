@@ -3,8 +3,6 @@ import random
 max_x = 75 # Extreme right point of tugger train path
 
 
-
-
 def read_line_info(path:str, conversion_factor = 60):
     '''
     path:str path to the file
@@ -31,13 +29,11 @@ def read_line_info(path:str, conversion_factor = 60):
     return (x, y, cycle_times, weights)
 
 
-
-
 def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
     '''
     x1:float, x2:float, y1:float, y2:float, max_x
     
-    Return rectilinear distance between two points. The x_max is the correction factor to avoid the miscalculation of distance between station 3 e 4.
+    Returns rectilinear distance between two points. The x_max is the correction factor to avoid the miscalculation of distance between station 3 e 4.
     
     Return
     -------
@@ -47,19 +43,15 @@ def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
     if y2 > y1:
         return abs(max_x - x1) + (max_x - x2) + abs(y1 - y2)
     else:
-        return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2) #Remove max_x to ease the code
-    
-    return abs(x1 - x2) + abs(y1 - y2) #Useless
+        return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2) 
 
 
-# Dove possiamo mettere la fase di accellerazione e decellerazione, qui oppure in compute time
-# meglio in compute time
 def compute_speed(weight:float, max_weight:float = 2000):
     '''
     weight:float
 
-    Return the speed [m/s] of a train considering the weight is transporting, it supposes that the velocity
-    decrease linearly with the load. Assume that speed_min = 1.2 m/s and speed_max = 1.6 m/s
+    Returns the speed [m/s] of a tugger considering the weight it is transporting. Here, we assume that the speed
+    decreases linearly with the load. Assume by a rule of thumb that speed_min = 1.2 m/s and speed_max = 1.6 m/s
 
     Returns
     -------
@@ -74,9 +66,11 @@ def compute_time(distance:float, speed:float, nextline:int = 0):
     '''
     distance:float, speed:float
     
-    Return time to travel considering the distance [m] and the speed. The time is computed adding a random
-    delay depending on the final destination. It returns time in seconds [s]. There is a fixed amount of time
-    added considering acceleration and deceleration time.
+    Returns the cartesians' movements' time  considering distance [m] to be travelled, speed, and the 
+    plane's area which the tugger moves on. The time is computed adding a random
+    delay depending on the final destination and on the distance. 
+    Furthermore a fixed amount corresponding to acceleration and decelaration has been added. 
+    The function returns time in seconds. 
     
     Return
     -------
@@ -84,19 +78,18 @@ def compute_time(distance:float, speed:float, nextline:int = 0):
     '''
     # fixed amount for accelerating is taken from LTX_20_T04_50_iGo_EN_TD.pdf page 2, acceleration time for the
     # truck with the same towing capacity
-    if nextline == 1 or 2 or 4:
+    
+    if nextline in (1,2,4):
         return distance/speed + random.uniform(1.0, 2.0) * distance + 8
     else:
         return distance/speed + random.uniform(0.0, 1.0) * distance + 8
 
-
-
-
+    
 def compute_energy(time:float, consumption = 2.6):
     '''
     time:float
     consumption: [kwh]
-    Consumption is defined as average consumption by EN standard.
+    Consumption is defined as an average consumption by EN standard.
     
     Return energy consumed.
 
