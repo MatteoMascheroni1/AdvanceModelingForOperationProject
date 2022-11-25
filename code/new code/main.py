@@ -1,5 +1,4 @@
 from mesa import Agent, Model
-# Activates all the agents at each step, one at a time, as they were added
 from mesa.time import BaseScheduler
 import random
 import utils as u
@@ -34,14 +33,15 @@ system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 export_df_to_csv = True   # Export df with collected data to csv
 # Note that to have system time both verbose and system_time_on must be True
-# Note that check_model_output is working properly only when isSearchhin = True
+# Note that check_model_output is working properly only when isSearching = True
 
 
 
 #############################
 ### Model hyperparameters ###
 #############################
-isSearching = True
+isSearching = True   # Perform grid search
+verboseSearch = False  # Show each combination of hyperparameters
 hyper_tugger_train_number = [1, 2, 3]
 hyper_ul_buffer = [[3, 3, 3, 3, 3], [1, 2, 3, 4, 5]]
 hyper_tugger_train_capacity = [4]
@@ -57,16 +57,13 @@ lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
 param_buff = []
 param_capacity = []
 param_tuggers = []
-
 time = []
-
-
-
 
 class Train(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.battery_size = battery_size   # [kWh]
+
         # initial battery charge is 60% and 100% of the maximum
         self.remaining_energy = battery_size * random.uniform(0.6, 1)   # [kWh]
         self.capacity = tugger_train_capacity   # Maximum number of unit loads which can be loaded on a tugger train
@@ -303,16 +300,21 @@ class FactoryModel(Model):
 ##############################
 
 if isSearching:
+    counting = 0
+    combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)
+    total = combination*n_shift*wh*3600
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
                 tugger_train_capacity = h
                 tugger_train_number = j
                 ul_buffer = k
+                if verboseSearch:
+                    print("Started with (buffer, tugger N, tugger capacity):",
+                          k, "-", j, "-", h)
+                print("Starting...")
                 model = FactoryModel()
                 for i in range(n_shift*wh*3600):
-                    print("Started with (buffer, tugger N, tugger capacity):",
-                          k, j, h)
                     model.step()
                     time.append(i)
                     param_buff.append(k)
@@ -323,6 +325,16 @@ if isSearching:
                         lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
                         lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
 
+                    n = int(round(counting/total*20, 0))
+                    progress = '='*n
+                    if round(counting/total*100, 0) % 5 == 0:
+                        print(f"{progress:20}", str(round(counting/total*100, 2))+"%")
+                    counting += 1
+
+    print("Simulation ended.")
+    print("Model performed", combination, "hyperparameters combinations.")
+    print("Total iterations:", total)
+
     dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
                              columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
 
@@ -332,6 +344,7 @@ if isSearching:
         dataframe["Idle_time_"+str(j+1)] = lines_idle[z]
 
     if export_df_to_csv:
+        print("Saving dataframe to csv.")
         dataframe.to_csv("./output/dataframe.csv")
 
 else:
@@ -359,7 +372,7 @@ else:
               "\nMaximum production [UL]: ", int(model.system_time/lines_cycle_times[i]),
               "\nTotal idle time [min]: ", round(model.schedule_lines.agents[i].idle_time/60, 2))
         if check_model_output:
-            print("\nCheck idle:", round(lines_idle[i][-1]/60,2))
+            print("\nCheck idle:", round(lines_idle[i][-1]/60, 2))
             print("Check actual prod:", round(lines_production[i][-1]))
             print("Total time - Len of prod - Len of prod:", n_shift*wh*3600, len(lines_production[i]), len(lines_idle[i]))
         print("************\n")
