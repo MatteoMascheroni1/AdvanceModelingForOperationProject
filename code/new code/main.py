@@ -3,6 +3,7 @@ from mesa import Agent, Model
 from mesa.time import BaseScheduler
 import random
 import utils as u
+import pandas as pd
 
 # Problema a linea 193
 
@@ -30,14 +31,32 @@ battery_size = 4.8   # kWh
 # Debug parameters
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
+check_model_output = True
 
 
 #############################
 ### Model hyperparameters ###
 #############################
-tugger_train_number = 5
-ul_buffer = [1, 2, 3, 4, 5]
-tugger_train_capacity = 4
+isSearching = False
+hyper_tugger_train_number = [1]
+hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+hyper_tugger_train_capacity = [4]
+
+
+##############################################
+### List to keep track of system evolution ###
+##############################################
+lines_production = {0: [], 1: [], 2: [], 3: [], 4: []}
+lines_buffer = {0: [], 1: [], 2: [], 3: [], 4: []}
+lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
+
+charging_station_1 = []
+charging_station_2 =[]
+
+time = []
+
+
+
 
 class Train(Agent):
     def __init__(self, unique_id, model):
@@ -278,18 +297,46 @@ class FactoryModel(Model):
 ### Running the simulation ###
 ##############################
 
-model = FactoryModel()
-for i in range(n_shift*wh*3600):  # Seconds
-    model.step()
+if isSearching:
+    for h in hyper_tugger_train_capacity:
+        for j in hyper_tugger_train_number:
+            for k in hyper_ul_buffer:
+                tugger_train_capacity = h
+                tugger_train_number = j
+                ul_buffer = k
+                model = FactoryModel()
 
-print("\nSYSTEM PERFORMANCE:")
-print("with",
-      "\nTugger train number:", tugger_train_number,
-      "\nTugger train capacity:", tugger_train_capacity,
-      "\nUL buffer line(in order):", ul_buffer, end="\n\n")
+    for i in range(n_shift*wh*3600):  # Seconds
+        model.step()
 
-for i in range(5):
-    print("************\nLINE", i, "\nActual production [UL]:",
-          model.schedule_lines.agents[i].total_production,
-          "\nMaximum production [UL]: ", int(model.system_time/lines_cycle_times[i]),
-          "\nTotal idle time [min]: ", round(model.schedule_lines.agents[i].idle_time/60, 2), "\n************\n")
+
+else:
+    tugger_train_number = hyper_tugger_train_number[0]
+    tugger_train_capacity = hyper_tugger_train_capacity[0]
+    ul_buffer = hyper_ul_buffer[0]
+    model = FactoryModel()
+
+    for i in range(n_shift*wh*3600):  # Seconds
+        for j in range(5):
+            lines_production[j].append(model.schedule_lines.agents[j].total_production)
+            lines_buffer[j].append(model.schedule_lines.agents[j].UL_in_buffer)
+            lines_idle[j].append(model.schedule_lines.agents[j].idle_time)
+
+        model.step()
+
+    print("\nSYSTEM PERFORMANCES:")
+    print("with",
+          "\nTugger train number:", tugger_train_number,
+          "\nTugger train capacity:", tugger_train_capacity,
+          "\nUL buffer line(in order):", ul_buffer, end="\n\n")
+
+    for i in range(5):
+        print("************\nLINE", i, "\nActual production [UL]:",
+              model.schedule_lines.agents[i].total_production,
+              "\nMaximum production [UL]: ", int(model.system_time/lines_cycle_times[i]),
+              "\nTotal idle time [min]: ", round(model.schedule_lines.agents[i].idle_time/60, 2))
+        if check_model_output:
+            print("\nCheck idle:", round(lines_idle[i][-1]/60,2))
+            print("Check actual prod:", round(lines_production[i][-1]))
+        print("************\n")
+
