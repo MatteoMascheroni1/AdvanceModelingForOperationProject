@@ -5,7 +5,7 @@ import random
 import utils as u
 import pandas as pd
 
-# Problema a linea 193
+# Problema a linea 225
 
 #################################
 ### Read file for coordinates ###
@@ -31,15 +31,19 @@ battery_size = 4.8   # kWh
 # Debug parameters
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
-check_model_output = True
+check_model_output = False  # Check if data collection was successful
+export_df_to_csv = True   # Export df with collected data to csv
+# Note that to have system time both verbose and system_time_on must be True
+# Note that check_model_output is working properly only when isSearchhin = True
+
 
 
 #############################
 ### Model hyperparameters ###
 #############################
-isSearching = False
-hyper_tugger_train_number = [1]
-hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+isSearching = True
+hyper_tugger_train_number = [1, 2, 3]
+hyper_ul_buffer = [[3, 3, 3, 3, 3], [1, 2, 3, 4, 5]]
 hyper_tugger_train_capacity = [4]
 
 
@@ -50,8 +54,9 @@ lines_production = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_buffer = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
 
-charging_station_1 = []
-charging_station_2 =[]
+param_buff = []
+param_capacity = []
+param_tuggers = []
 
 time = []
 
@@ -298,17 +303,36 @@ class FactoryModel(Model):
 ##############################
 
 if isSearching:
-    for h in hyper_tugger_train_capacity:
+    for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
-            for k in hyper_ul_buffer:
+            for h in hyper_tugger_train_capacity:
                 tugger_train_capacity = h
                 tugger_train_number = j
                 ul_buffer = k
                 model = FactoryModel()
+                for i in range(n_shift*wh*3600):
+                    print("Started with (buffer, tugger N, tugger capacity):",
+                          k, j, h)
+                    model.step()
+                    time.append(i)
+                    param_buff.append(k)
+                    param_capacity.append(h)
+                    param_tuggers.append(j)
+                    for z in range(5):
+                        lines_production[z].append(model.schedule_lines.agents[z].total_production)
+                        lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
+                        lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
 
-    for i in range(n_shift*wh*3600):  # Seconds
-        model.step()
+    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
+                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
 
+    for j in range(5):
+        dataframe["Prod_"+str(j+1)] = lines_production[j]
+        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
+        dataframe["Idle_time_"+str(j+1)] = lines_idle[z]
+
+    if export_df_to_csv:
+        dataframe.to_csv("./output/dataframe.csv")
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]
@@ -317,12 +341,11 @@ else:
     model = FactoryModel()
 
     for i in range(n_shift*wh*3600):  # Seconds
+        model.step()
         for j in range(5):
             lines_production[j].append(model.schedule_lines.agents[j].total_production)
             lines_buffer[j].append(model.schedule_lines.agents[j].UL_in_buffer)
             lines_idle[j].append(model.schedule_lines.agents[j].idle_time)
-
-        model.step()
 
     print("\nSYSTEM PERFORMANCES:")
     print("with",
@@ -338,5 +361,6 @@ else:
         if check_model_output:
             print("\nCheck idle:", round(lines_idle[i][-1]/60,2))
             print("Check actual prod:", round(lines_production[i][-1]))
+            print("Total time - Len of prod - Len of prod:", n_shift*wh*3600, len(lines_production[i]), len(lines_idle[i]))
         print("************\n")
 
