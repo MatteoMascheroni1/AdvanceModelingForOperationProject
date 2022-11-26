@@ -2,7 +2,8 @@ from mesa import Agent, Model
 from mesa.time import BaseScheduler #BaseScheduler activates all the agents at each step, one agent at a time, in the order they were added to the scheduler
 import random
 import utils as u
-
+import importlib
+importlib.reload(u)
 #################################
 ### Read file for coordinates ###
 #################################
@@ -45,7 +46,7 @@ class Train(Agent):
         self.weight = 0
                        
     def check_charge(self): #Function that checks if the vehicle battery level is enough to perform the following pick-up tour
-        if self.remaining_energy < 0.4*self.battery_size:
+        if self.remaining_energy < self.charge_threshold():
             self.selected_charging_station = random.choice(range(len(charging_stations_x))) #One of the charging stations is randomly selected
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
@@ -118,7 +119,18 @@ class Train(Agent):
         self.need_to_charge = False
         self.next_stop_x = lines_output_points_x[self.next_line]
         self.next_stop_y = lines_output_points_y[self.next_line]
-        
+
+    def charge_threshold(self):
+        # consumo per viaggare carico al massimo, consume per caricare e scaricare tutti i pallet,
+        time = 0
+        line_output_for_charging_x = [0]+lines_output_points_x+[0]
+        line_output_for_charging_y = [80]+lines_output_points_y+[80]
+        for i in range(5):
+            time += u.compute_time(u.compute_distance(x1=line_output_for_charging_x[i],x2=line_output_for_charging_x[i+1],y1=line_output_for_charging_y[i],y2=line_output_for_charging_y[i+1]),speed=u.compute_speed(weight=self.weight_capacity),random_flag=False)
+        time += 190+u.compute_time(u.compute_distance(x1=0,x2=0,y1=80,y2=10),speed=u.compute_speed(weight=0),random_flag=False)
+        print("tempo previsto: ",time)
+        est_consumption = u.compute_energy(time=time)+u.compute_energy_loading(weight=self.weight_capacity)*2
+        return est_consumption
     def step(self):
         if self.task_endtime <= self.model.system_time:
             if (self.pos_x,self.pos_y) == (warehouse_coord[0],warehouse_coord[1]):
