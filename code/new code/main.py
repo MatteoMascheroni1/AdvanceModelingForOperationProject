@@ -303,6 +303,7 @@ if isSearching:
     counting = 0
     combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)
     total = combination*n_shift*wh*3600
+    print("Starting...")
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
@@ -312,7 +313,6 @@ if isSearching:
                 if verboseSearch:
                     print("Started with (buffer, tugger N, tugger capacity):",
                           k, "-", j, "-", h)
-                print("Starting...")
                 model = FactoryModel()
                 for i in range(n_shift*wh*3600):
                     model.step()
