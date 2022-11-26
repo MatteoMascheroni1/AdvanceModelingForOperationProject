@@ -3,6 +3,7 @@ from mesa.time import BaseScheduler
 import random
 import utils as u
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Problema a linea 225
 
@@ -20,6 +21,7 @@ lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight =
 # Simulation parameters
 n_shift = 2   # Shifts per day
 wh = 8   # Working Hours per shift
+seed = 42
 
 # Model Parameters
 warehouse_coord = [0, 80]   # x and y coordinates of the warehouse input point
@@ -42,8 +44,8 @@ export_df_to_csv = True   # Export df with collected data to csv
 #############################
 isSearching = True   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
-hyper_tugger_train_number = [1, 2, 3]
-hyper_ul_buffer = [[3, 3, 3, 3, 3], [1, 2, 3, 4, 5]]
+hyper_tugger_train_number = [1]
+hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
 
@@ -53,6 +55,7 @@ hyper_tugger_train_capacity = [4]
 lines_production = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_buffer = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
+charging_status = {0: [], 1: []}
 
 param_buff = []
 param_capacity = []
@@ -192,6 +195,7 @@ class Train(Agent):
         charging_time = (charging_size/power)*3600  # seconds
         self.remaining_energy += charging_size
         self.model.schedule_stations.agents[self.selected_charging_station].waiting_time += charging_time
+        self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.schedule_stations.agents[self.selected_charging_station].waiting_time+self.model.system_time
         self.task_endtime += charging_time
         if verbose:
             print("Task endtime (hours):", round(self.task_endtime/3600, 2), "- Remaining energy:", self.remaining_energy, "kWh")
@@ -217,9 +221,15 @@ class ChargingStation(Agent):
 
         # Time that a tugger train must wait before beginning its charging process at this station
         self.waiting_time = 0
+        self.task_endtime = 0
+        self.is_charging = False
 
     def step(self):
         # Step duration: 1 second
+        if self.task_endtime > self.model.system_time:
+            self.is_charging = True
+        else:
+            self.is_charging = False
         if self.waiting_time >= 1:
             self.waiting_time -= 1
         else:
@@ -265,7 +275,7 @@ class Line(Agent):
 
 
 class FactoryModel(Model):
-    def __init__(self): 
+    def __init__(self,seed=None):
         super().__init__()
         self.schedule_trains = BaseScheduler(self)
         self.schedule_stations = BaseScheduler(self)
@@ -313,7 +323,7 @@ if isSearching:
                     print("Started with (buffer, tugger N, tugger capacity):",
                           k, "-", j, "-", h)
                 print("Starting...")
-                model = FactoryModel()
+                model = FactoryModel(seed=seed)
                 for i in range(n_shift*wh*3600):
                     model.step()
                     time.append(i)
@@ -324,7 +334,8 @@ if isSearching:
                         lines_production[z].append(model.schedule_lines.agents[z].total_production)
                         lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
                         lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
-
+                    for station in range(2):
+                        charging_status[station].append(model.schedule_stations.agents[station].is_charging)
                     n = int(round(counting/total*20, 0))
                     progress = '='*n
                     if round(counting/total*100, 0) % 5 == 0:
@@ -342,7 +353,8 @@ if isSearching:
         dataframe["Prod_"+str(j+1)] = lines_production[j]
         dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
         dataframe["Idle_time_"+str(j+1)] = lines_idle[z]
-
+    for station in range(2):
+        dataframe["Saturation_"+str(station+1)] = charging_status[station]
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv("./output/dataframe.csv")
@@ -351,7 +363,7 @@ else:
     tugger_train_number = hyper_tugger_train_number[0]
     tugger_train_capacity = hyper_tugger_train_capacity[0]
     ul_buffer = hyper_ul_buffer[0]
-    model = FactoryModel()
+    model = FactoryModel(seed=seed)
 
     for i in range(n_shift*wh*3600):  # Seconds
         model.step()
@@ -377,3 +389,7 @@ else:
             print("Total time - Len of prod - Len of prod:", n_shift*wh*3600, len(lines_production[i]), len(lines_idle[i]))
         print("************\n")
 
+plt.plot(dataframe.Time,dataframe.Saturation_1,label="Stazione 1")
+plt.plot(dataframe.Time,dataframe.Saturation_2,label="Stazione 2")
+plt.legend()
+plt.show()
