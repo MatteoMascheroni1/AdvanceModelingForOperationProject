@@ -1,24 +1,26 @@
+import statistics
+
 from mesa import Agent, Model
 from mesa.time import BaseScheduler
 import random
 import utils as u
 import pandas as pd
+import scipy.stats
 import matplotlib.pyplot as plt
 from time import sleep
 
-# Problema a linea 225
+# Problema con commento potrebbe essere inutile
 
 #################################
 ### Read file for coordinates ###
 #################################
-
 path = "./lines_info.csv"
 lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight = u.read_line_info(path)
+
 
 ##################
 ### Parameters ###
 ##################
-
 # Simulation parameters
 n_shift = 2   # Shifts per day
 wh = 8   # Working Hours per shift
@@ -45,9 +47,31 @@ export_df_to_csv = False   # Export df with collected data to csv
 #############################
 isSearching = True   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
-hyper_tugger_train_number = [i for i in (range(1, 11))]
+hyper_tugger_train_number = [1]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
+
+
+####################
+### Model tuning ###
+####################
+searchForSteps = True  # If True find the right number of steps
+alpha = .05  # Desired alpha for interval of confidence
+N = 3600  # Starting N
+
+if searchForSteps:
+    # Suppress previous declaration for safety reasons
+    hyper_tugger_train_number = [1]
+    hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+    hyper_tugger_train_capacity = [4]
+    verbose = False  # Run a verbose simulation
+    system_time_on = False  # Print system time
+    check_model_output = False  # Check if data collection was successful
+    export_df_to_csv = False
+    isSearching = False  # Perform grid search
+    verboseSearch = False
+
+
 
 
 ##############################################
@@ -276,7 +300,7 @@ class Line(Agent):
 
 
 class FactoryModel(Model):
-    def __init__(self,seed=None):
+    def __init__(self, seed= None):
         super().__init__()
         self.schedule_trains = BaseScheduler(self)
         self.schedule_stations = BaseScheduler(self)
@@ -285,16 +309,16 @@ class FactoryModel(Model):
         self.system_time = 0
         
         # Creating tugger trains, charging stations and lines:
-        for j in range(tugger_train_number):
-            a = Train("Tugger train_" + str(j+1), self)
+        for tug in range(tugger_train_number):
+            a = Train("Tugger train_" + str(tug+1), self)
             self.schedule_trains.add(a)
             
-        for h in range(len(charging_stations_x)):
-            a = ChargingStation("Charging station_"+str(h), self)
+        for stat in range(len(charging_stations_x)):
+            a = ChargingStation("Charging station_"+str(stat), self)
             self.schedule_stations.add(a)
 
-        for k in range(5):   # Lines in the factory
-            a = Line("Line_"+str(k), self)
+        for line in range(5):   # Lines in the factory
+            a = Line("Line_"+str(line), self)
             self.schedule_lines.add(a)
             
     def step(self):
@@ -357,6 +381,40 @@ if isSearching:
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv("./output/dataframe.csv")
+
+elif searchForSteps:
+    tugger_train_number = hyper_tugger_train_number[0]
+    tugger_train_capacity = hyper_tugger_train_capacity[0]
+    ul_buffer = hyper_ul_buffer[0]
+    model = FactoryModel(seed=seed)
+
+    idle_mean = []
+
+    print("Algorithm started...")
+    while True:
+        for i in range(N):  # Seconds
+            model.step()
+        idle_output = []
+        for agent in model.schedule_lines.agents:
+            idle_output.append(agent.idle_time)
+        idle_mean.append(statistics.mean(idle_output))
+
+
+        # Il problema con questo algoritmo secondo me è che non possiamo utilizzare l'idle time:
+        # l'idle time per come è calcolato tenderà a infinito con l'aumento degli steps perchè maggiore
+        # tempo del sistema significa maggior tempo di inattività.
+
+        if len(idle_mean) > 1:
+            s = statistics.variance(idle_mean)
+            quantile = scipy.stats.t.ppf(1 - alpha / 2, N - 1)
+            c = quantile * (s / N) ** 0.5
+            if c <= 0.01 * statistics.mean(idle_mean):
+                print(f"Number of steps for alpha={alpha}: {N}")
+                break
+
+        N = N + 100
+    plt.plot(idle_mean)
+    plt.show()
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]
