@@ -38,3 +38,19 @@ scheduler, ieri sera ho smattato**
 ## Aggiornamento 06/11
 * Fixato il movimento del tugger tra warehouse e stazione di ricarica. Prima si caricava direttamente alla WH. 
 * Fixato il calcolo distanza tra stazione di ricarica e prima linea. Prima saltava di netto la prima linea.  
+
+
+## Aggiornamento 26/11
+* Mancano un po' di aggiornamenti, per il periodo dall'ultimo aggiornamento fino ad ora dovremo guardare i commit
+* Aggiunto la funzione per la grid search
+* Aggiunto strutture dati per la raccolta dei dati durante gli steps
+* Aggiunto possibilità di esportare il dataframe come csv
+* Aggiunto i parametri per fare il debug del codice
+* Aggiunto le funzioni che hanno fatto Ema, Matte e Edo che però non ho ancora guardato :)
+
+
+## Aggioranmento 27/11
+* Migliorato la barra di progressione durante la simulazione
+* Implementato l'algoritmo per determinare il numero ottimo di step ma c'è (potenzialmente) un GROSSO problema: con l'algoritmo che abbiamo fatto in classe, secondo me, non possiamo utilizzare l'idle time. L'idle time, infatti, per come è calcolato tenderà a infinito con l'aumento degli steps perchè maggior tempo del sistema significa maggior tempo di inattività.
+![Immagine non disponibile](./mean_idle.png "Media dell'idle time con l'aumentare degli steps")
+Ripensandoci ora noi siamo interessati maggiormente che l'idle time sia in un certo senso "stabile" quindi penso si possa anche evitare di determinare il numero degli steps. Mi spiego meglio, sappiamo che la fabbrica lavora 2 turni da 8 ore al giorno e che in questo periodo ci debbano essere meno di 5 minuti di idle time: il numero degli steps secondo me è già noto.
