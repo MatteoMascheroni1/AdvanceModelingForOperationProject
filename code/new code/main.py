@@ -4,6 +4,7 @@ import random
 import utils as u
 import pandas as pd
 import matplotlib.pyplot as plt
+from time import sleep
 
 # Problema a linea 225
 
@@ -33,7 +34,7 @@ battery_size = 4.8   # kWh
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-export_df_to_csv = True   # Export df with collected data to csv
+export_df_to_csv = False   # Export df with collected data to csv
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -44,7 +45,7 @@ export_df_to_csv = True   # Export df with collected data to csv
 #############################
 isSearching = True   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
-hyper_tugger_train_number = [1]
+hyper_tugger_train_number = [i for i in (range(1, 11))]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
@@ -336,13 +337,11 @@ if isSearching:
                         lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
                     for station in range(2):
                         charging_status[station].append(model.schedule_stations.agents[station].is_charging)
-                    n = int(round(counting/total*20, 0))
-                    progress = '='*n
-                    if round(counting/total*100, 0) % 5 == 0:
-                        print(f"{progress:20}", str(round(counting/total*100, 2))+"%")
+
+                    u.progress(int(round(counting/total*100, 0)))
                     counting += 1
 
-    print("Simulation ended.")
+    print("\nSimulation ended.")
     print("Model performed", combination, "hyperparameters combinations.")
     print("Total iterations:", total)
 
@@ -389,7 +388,7 @@ else:
             print("Total time - Len of prod - Len of prod:", n_shift*wh*3600, len(lines_production[i]), len(lines_idle[i]))
         print("************\n")
 
-plt.plot(dataframe.Time,dataframe.Saturation_1,label="Stazione 1")
-plt.plot(dataframe.Time,dataframe.Saturation_2,label="Stazione 2")
-plt.legend()
-plt.show()
+# plt.plot(dataframe.Time, dataframe.Saturation_1, label="Stazione 1")
+# plt.plot(dataframe.Time, dataframe.Saturation_2, label="Stazione 2")
+# plt.legend()
+# plt.show()
