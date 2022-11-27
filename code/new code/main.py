@@ -48,6 +48,7 @@ class Train(Agent):
     def check_charge(self): #Function that checks if the vehicle battery level is enough to perform the following pick-up tour
         if self.remaining_energy < self.charge_threshold():
             self.selected_charging_station = random.choice(range(len(charging_stations_x))) #One of the charging stations is randomly selected
+            # self.selected_charging_station = self.model.schedule_stations.agents.index(min(self.model.schedule_stations.agents, key=lambda x:x.waiting_time))
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
             self.need_to_charge = True
@@ -66,7 +67,7 @@ class Train(Agent):
         
         if self.need_to_charge == False: #If the next stop is not a charging station
             if (self.pos_x,self.pos_y) != (warehouse_coord[0],warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
-                if self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
+                while self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
                     if self.load < self.capacity:
                         if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:# If the train is not full, it loads one unit load
                             print("\n"+self.unique_id,"going to line",self.next_line,"and picking up a unit load")
@@ -78,9 +79,10 @@ class Train(Agent):
                             self.weight += output_weight[self.next_line]
                         else:
                             print("\n" + self.unique_id, "- Not enough weight capacity left.")
-
+                            break
                     else:
-                        print("\n"+self.unique_id,"going to line",self.next_line,"- Not enough loading capacity left") 
+                        print("\n"+self.unique_id,"going to line",self.next_line,"- Not enough loading capacity left")
+                        break
                 else:
                    print("\n"+self.unique_id,"going to line",self.next_line,"- No unit loads to be picked up")
                 #self.next_line += 1
@@ -146,7 +148,6 @@ class ChargingStation(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.waiting_time = 0 #Time that a tugger train must wait before beginning its charging process at this station
-
     def step(self):
         if self.waiting_time >= 1: #1 is the step duration
             self.waiting_time -= 1 #1 is the step duration
@@ -183,7 +184,7 @@ class FactoryModel(Model):
         self.system_time = 0 #This attribute will keep track of the system time, advancing by 1 minute at each step
         
         #Creating tugger trains, charging stations and lines:
-        for i in range(1):
+        for i in range(3):
             a = Train("Tugger train_" + str(i+1),self)
             self.schedule_trains.add(a)
             
