@@ -78,6 +78,7 @@ def compute_time(distance:float, speed:float, nextline:int = 0,random_flag=True)
     '''
     # fixed amount for accelerating is taken from LTX_20_T04_50_iGo_EN_TD.pdf page 2, acceleration time for the
     # truck with the same towing capacity
+    
     if random_flag:
         if nextline in (1,2,4):
             return distance/speed + random.uniform(0.0, 1.0) * distance + 8
