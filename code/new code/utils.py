@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 
 # Parameters
 max_x = 75  # Extreme right point of tugger train path
@@ -61,7 +62,7 @@ def compute_speed(weight: float, max_weight: float = 2000):
     """
     speed_min = 1.2
     speed_max = 1.6
-    speed = 1.6 - weight / max_weight * (speed_max - speed_min)
+    speed = speed_max - weight / max_weight * (speed_max - speed_min)
     return speed
 
 def compute_time(distance: float, speed: float, nextline: int = 0, random_flag=True):
@@ -131,6 +132,12 @@ def progress(percent=0, width=40):
     tags = "=" * left
     spaces = " " * right
     percents = f"{percent:.0f}%"
-    print("\r[", tags, spaces, "]", percents, sep="", end="", flush=True)
+    print("\rC", tags, spaces, "3    ", percents, sep="", end="", flush=True)
+
+
+
+
+
+
 
 

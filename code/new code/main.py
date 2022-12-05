@@ -34,10 +34,12 @@ charging_stations_y = [10, 20]   # y coordinates of the first and second chargin
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = True   # Run a verbose simulation
+verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 export_df_to_csv = False   # Export df with collected data to csv
+isSearching = True   # Perform grid search
+verboseSearch = False  # Show each combination of hyperparameters
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -46,9 +48,7 @@ export_df_to_csv = False   # Export df with collected data to csv
 #############################
 ### Model hyperparameters ###
 #############################
-isSearching = False   # Perform grid search
-verboseSearch = False  # Show each combination of hyperparameters
-hyper_tugger_train_number = [1]
+hyper_tugger_train_number = [3]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
