@@ -136,6 +136,38 @@ def progress(percent=0, width=40):
 
 
 
+def read_chargin_phases(path:str):
+    """
+    :param path: path of the csv file
+    :return: dict with all the charging data
+    """
+    charge = dict()
+    with open(path, "r") as f:
+        f.seek(0)
+        for line in f.readlines()[1:]:
+            a = line.split(',')
+            charge[float(a[0])] = int(a[1].replace("\n", ""))*60
+    return charge
+
+
+def compute_charging_time(charge:dict, remaining_energy:float, tot_cap:float):
+    percentage = remaining_energy/tot_cap
+    for i in charge.keys():
+        if percentage<=i:
+            max_index = i
+            break
+        if percentage>=i:
+            min_index = i
+
+    upper_time = charge[max_index]
+    lower_time = charge[min_index]
+
+    interpolated_time = lower_time*(max_index - percentage) + upper_time*(percentage - min_index)
+    interpolated_time = interpolated_time/(max_index - min_index)
+    time = charge[1] - upper_time
+    time += interpolated_time
+    return time
+
 
 
 

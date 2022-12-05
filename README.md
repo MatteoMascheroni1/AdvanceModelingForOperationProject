@@ -54,3 +54,18 @@ scheduler, ieri sera ho smattato**
 * Implementato l'algoritmo per determinare il numero ottimo di step ma c'è (potenzialmente) un GROSSO problema: con l'algoritmo che abbiamo fatto in classe, secondo me, non possiamo utilizzare l'idle time. L'idle time, infatti, per come è calcolato tenderà a infinito con l'aumento degli steps perchè maggior tempo del sistema significa maggior tempo di inattività.
 ![Immagine non disponibile](./mean_idle.png "Media dell'idle time con l'aumentare degli steps")
 Ripensandoci ora noi siamo interessati maggiormente che l'idle time sia in un certo senso "stabile" quindi penso si possa anche evitare di determinare il numero degli steps. Mi spiego meglio, sappiamo che la fabbrica lavora 2 turni da 8 ore al giorno e che in questo periodo ci debbano essere meno di 5 minuti di idle time: il numero degli steps secondo me è già noto.
+
+
+
+## Aggiornamento 5/12
+5->7% </br>
+10->17% </br>
+15->27% </br>
+30->55% </br>
+45->76% </br>
+1->86% </br>
+1:15->95% </br>
+1:30->98% </br>
+1:38 full charge</br>
+Ho messo la funzione di carica della batteria: duranteil coding abbiamo assunto che il tempo si possa interpolare linearmente tra due percentuali "significative".
+Nel report finale metterei che abbiamo fatto questa scelta e la scelta di usare i dati dell'iphone perchè abbiamo sentito un esperto e ci ha detto che potrebbe essere un'ottima approssimazione.

@@ -18,6 +18,12 @@ importlib.reload(u)
 path = "./lines_info.csv"
 lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight = u.read_line_info(path)
 
+#####################################
+### Read file for charging phases ###
+#####################################
+path = "./charging.csv"
+charging_dict = u.read_chargin_phases(path)
+
 
 ##################
 ### Parameters ###
@@ -187,8 +193,11 @@ class Train(Agent):
 
         # The battery is fully charged
         charging_size = self.battery_size - self.remaining_energy
-        power = 4.9   # [kW] - Power of the charging station
-        charging_time = (charging_size/power)*3600  # seconds
+        # A questo punto la potenza diventa inutile
+        # dovremo spiegare che abbiamo sentito un esperto (il prof di super mix) e che lui ci ha detto che possiamo
+        # approssimare la carica del tugger train con la carica dell'iphone...
+        # power = 4.9   # [kW] - Power of the charging station
+        charging_time = u.compute_charging_time(charging_dict, self.remaining_energy, self.battery_size)  # seconds
         self.remaining_energy += charging_size
         self.model.schedule_stations.agents[self.selected_charging_station].waiting_time += charging_time
         self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.schedule_stations.agents[self.selected_charging_station].waiting_time+self.model.system_time

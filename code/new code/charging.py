@@ -1,9 +1,7 @@
-import csv
-import scipy as sc
 path = "./charging.csv"
 
-#remaining_energy:float, tot_cap:float
-def computeChargingTime(percentage:float):
+
+def computeChargingTime(remaining_energy:float, tot_cap:float):
     charge = dict()
     with open(path, "r") as f:
         f.seek(0)
