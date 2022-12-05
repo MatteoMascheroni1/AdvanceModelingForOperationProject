@@ -65,7 +65,7 @@ def compute_speed(weight: float, max_weight: float = 2000):
     return speed
 
 
-def compute_time(distance: float, speed: float, nextline: int = 0):
+def compute_time(distance: float, speed: float, nextline: int = 0, random_flag=True):
     """
     distance:float, speed:float
 
@@ -81,11 +81,16 @@ def compute_time(distance: float, speed: float, nextline: int = 0):
     """
     # fixed amount for accelerating is taken from LTX_20_T04_50_iGo_EN_TD.pdf page 2, acceleration time for the
     # truck with the same towing capacity
-
-    if nextline in (1, 2, 4):
-        return distance / speed + random.uniform(1.0, 2.0) * distance + 8
+    if random_flag:
+        if nextline in (1, 2, 4):
+            return distance / speed + random.uniform(0.0, 1.0) * distance + 8
+        else:
+            return distance / speed + random.uniform(0.0, 0.5) * distance + 8
     else:
-        return distance / speed + random.uniform(0.0, 1.0) * distance + 8
+        if nextline in (1, 2, 4):
+            return distance / speed + 8
+        else:
+            return distance / speed + 8
 
 
 def compute_energy(time: float, consumption=2.6):
@@ -127,3 +132,5 @@ def progress(percent=0, width=40):
     spaces = " " * right
     percents = f"{percent:.0f}%"
     print("\r[", tags, spaces, "]", percents, sep="", end="", flush=True)
+
+
