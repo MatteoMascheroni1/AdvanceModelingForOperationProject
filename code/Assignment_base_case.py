@@ -114,6 +114,7 @@ class Train(Agent):
         power = 4.9 #[kW] - Power of the charging station
         charging_time = (charging_size/power)*60  # minutes
         self.model.schedule_stations.agents[self.selected_charging_station].waiting_time += charging_time
+        self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.system_time + self.model.schedule_stations.agents[self.selected_charging_station].waiting_time
         self.task_endtime += charging_time 
         
         print("Task endtime (hours):",round(self.task_endtime/60,2),"- Remaining energy:",self.remaining_energy, "kWh")
@@ -132,13 +133,22 @@ class Train(Agent):
 class ChargingStation(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.task_endtime = 0
+        self.is_charging = False
         self.waiting_time = 0 #Time that a tugger train must wait before beginning its charging process at this station
 
     def step(self):
+        if self.task_endtime > self.model.system_time:
+            self.is_charging = True
+            print("Im charging")
+        else:
+            self.is_charging = False
+            print("Im not charging")
         if self.waiting_time >= 1: #1 is the step duration
             self.waiting_time -= 1 #1 is the step duration
         else:
             self.waiting_time = 0
+
 
 class Line(Agent):
     def __init__(self, unique_id, model):

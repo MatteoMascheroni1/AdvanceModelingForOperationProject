@@ -1,53 +1,55 @@
 import random
+
 # Parameters
-max_x = 75 # Extreme right point of tugger train path
+max_x = 75  # Extreme right point of tugger train path
 
 
-def read_line_info(path:str, conversion_factor = 60):
-    '''
+def read_line_info(path: str, conversion_factor=60):
+    """
     path:str path to the file
     conversion_factor: adjust measure unit
     Read a file and returns line coordinates, cycle times[min] and weights for each line.
-    
+
     Return
     -------
     Tuple (x, y, cycle times, UL weights)
-    '''
+    """
     x = []
     y = []
     cycle_times = []
     weights = []
-    
+
     with open(path, "r") as f:
         f.seek(0)
         for line in f.readlines()[1:]:
-            a = line.split(',') #The elements of the list a are strings, corresponding to the comma-separated values in the line
+            a = line.split(
+                ',')  # The elements of the list a are strings, corresponding to the comma-separated values in the line
             x.append(float(a[1]))
             y.append(float(a[2]))
-            cycle_times.append(float(a[3])*conversion_factor)
+            cycle_times.append(float(a[3]) * conversion_factor)
             weights.append(float(a[4]))
-    return (x, y, cycle_times, weights)
+    return x, y, cycle_times, weights
 
 
-def compute_distance(x1:float, x2:float, y1:float, y2:float, max_x = max_x):
-    '''
+def compute_distance(x1: float, x2: float, y1: float, y2: float, max_x=max_x):
+    """
     x1:float, x2:float, y1:float, y2:float, max_x
-    
+
     Returns rectilinear distance between two points. The x_max is the correction factor to avoid the miscalculation of distance between station 3 e 4.
-    
+
     Return
     -------
     float distance
-    '''
+    """
 
     if y2 > y1:
         return abs(max_x - x1) + (max_x - x2) + abs(y1 - y2)
     else:
-        return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2) 
+        return abs((max_x - x1) - (max_x - x2)) + abs(y1 - y2)
 
 
-def compute_speed(weight:float, max_weight:float = 2000):
-    '''
+def compute_speed(weight: float, max_weight: float = 2000):
+    """
     weight:float
 
     Returns the speed [m/s] of a tugger considering the weight it is transporting. Here, we assume that the speed
@@ -56,57 +58,58 @@ def compute_speed(weight:float, max_weight:float = 2000):
     Returns
     -------
     float speed [m/s]
-    '''
+    """
     speed_min = 1.2
     speed_max = 1.6
-    speed = 1.6 - weight/max_weight * (speed_max - speed_min)
+    speed = 1.6 - weight / max_weight * (speed_max - speed_min)
     return speed
 
-def compute_time(distance:float, speed:float, nextline:int = 0,random_flag=True):
-    '''
+def compute_time(distance: float, speed: float, nextline: int = 0, random_flag=True):
+    """
     distance:float, speed:float
-    
-    Returns the cartesians' movements' time  considering distance [m] to be travelled, speed, and the 
+
+    Returns the cartesians' movements' time  considering distance [m] to be travelled, speed, and the
     plane's area which the tugger moves on. The time is computed adding a random
-    delay depending on the final destination and on the distance. 
-    Furthermore a fixed amount corresponding to acceleration and decelaration has been added. 
-    The function returns time in seconds. 
-    
+    delay depending on the final destination and on the distance.
+    Furthermore a fixed amount corresponding to acceleration and decelaration has been added.
+    The function returns time in seconds.
+
     Return
     -------
     float time [s]
-    '''
+    """
     # fixed amount for accelerating is taken from LTX_20_T04_50_iGo_EN_TD.pdf page 2, acceleration time for the
     # truck with the same towing capacity
-    
-    if random_flag:
-        if nextline in (1,2,4):
-            return distance/speed + random.uniform(0.0, 1.0) * distance + 8
-        else:
-            return distance/speed + random.uniform(0.0, 0.5) * distance + 8
-    else:
-        if nextline in (1,2,4):
-            return distance/speed + 8
-        else:
-            return distance/speed + 8
 
-    
-def compute_energy(time:float, consumption = 2.6):
-    '''
+    if random_flag:
+        if nextline in (1, 2, 4):
+            return distance / speed + random.uniform(0.0, 1.0) * distance + 8
+        else:
+            return distance / speed + random.uniform(0.0, 0.5) * distance + 8
+    else:
+        if nextline in (1, 2, 4):
+            return distance / speed + 8
+        else:
+            return distance / speed + 8
+
+
+def compute_energy(time: float, consumption=2.6):
+    """
     time:float
     consumption: [kwh]
     Consumption is defined as an average consumption by EN standard.
-    
+
     Return energy consumed.
 
     -------
     float energy
-    '''
+    """
     energy = consumption / 3600 * time
     return energy
 
-def compute_energy_loading(weight:float):
-    '''
+
+def compute_energy_loading(weight: float):
+    """
 
     Parameters
     weight:float
@@ -117,6 +120,17 @@ def compute_energy_loading(weight:float):
     Returns
     float: energy consumed [kWh]
 
-    '''
+    """
     energy = 1.2 * weight * 9.81 / 3600000 * 1.2
     return energy
+
+
+def progress(percent=0, width=40):
+    left = width * percent // 100
+    right = width - left
+    tags = "=" * left
+    spaces = " " * right
+    percents = f"{percent:.0f}%"
+    print("\r[", tags, spaces, "]", percents, sep="", end="", flush=True)
+
+
