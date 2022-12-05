@@ -215,7 +215,6 @@ class Train(Agent):
         time += 190+u.compute_time(u.compute_distance(x1=0, x2=0, y1=80, y2=10),
                                    speed=u.compute_speed(weight=0),
                                    random_flag=False)
-        print("tempo previsto: ", time)
         est_consumption = u.compute_energy(time=time)+u.compute_energy_loading(weight=self.weight_capacity)*2
         return est_consumption
     
