@@ -121,6 +121,8 @@ class Train(Agent):
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
             self.need_to_charge = True
+            if verbose:
+                print("\n\n" + self.unique_id, "in need of charging\n- Remaining charge:", round(self.remaining_energy,4), "KWh\n- Going to recharge at station", self.selected_charging_station,"\n   - Travelled distance:", u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y), "m")  
             
         else: 
             self.next_line = 0
@@ -130,13 +132,15 @@ class Train(Agent):
     def move(self):
         if (not self.flag_load) or (self.next_stop_x == warehouse_coord[0] and self.next_stop_y == warehouse_coord[1] and self.pos_x== 20.0 and self.pos_y == 80.0) :
             distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-            if self.flag_load: print ("going to the warehouse")
-            elif (self.next_stop_x == 0 and self.next_stop_y == 10) or (self.next_stop_x == 0 and self.next_stop_y == 20):
-                print("Ricarisiuuuuum")
+            if self.flag_load: 
+                if verbose:
+                    print ("\n" + "\033[3m" + (self.unique_id) + "\033[0m", "\n- Going to the warehouse", "\n   - Travelled distance:", distance_next_stop, "m")
+
             else:
-                print("\n\n" + "\u0332".join(self.unique_id) + "\n\n- Going to line", self.next_line,
-                      "\n   - Travelled distance:", distance_next_stop, "m", "\n   - Carried weight: ", self.weight,
-                      "\n   - Task endtime (hours):", round(self.task_endtime / 3600, 2))
+                if verbose:
+                    print("\n\n"+ self.unique_id + " going to line", self.next_line,
+                      "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight,"kg",
+                      "\n- Task endtime:", round(self.task_endtime / 3600, 2),"h","\n\n"+ self.unique_id, "at line", self.next_line)
             self.task_endtime += u.compute_time(distance_next_stop,
                                                 speed=u.compute_speed(self.weight),
                                                 nextline=self.next_line)
@@ -154,7 +158,7 @@ class Train(Agent):
                         if self.load < self.capacity:
                             if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:
                                 if verbose:
-                                    print("- Picking up a unit load at line", self.next_line, "\n   - Task endtime (hours):", round(self.task_endtime/3600, 2))
+                                    print("- Picking up a unit load", "\n   - Task endtime:", round(self.task_endtime/3600, 2),"h")
                                     
                                 # Loading time (between 30 seconds and 60 seconds)
                                 loading_time = random.uniform(30, 60)
@@ -173,10 +177,10 @@ class Train(Agent):
                             break
                     else:
                         if verbose:
-                            print("- No (more) unit loads to be picked up at line", self.next_line)
+                            print("- No (more) unit loads to be picked up")
                 else:
                     if verbose:
-                        print("- Unloading", self.load, "unit loads")
+                        print("   - Unloading", self.load, "unit loads")
                     unloading_time = 30 + random.uniform(30, 60)*self.load
                     self.task_endtime += unloading_time
                     self.remaining_energy -= u.compute_energy_loading(self.weight)
@@ -188,8 +192,8 @@ class Train(Agent):
                 if self.next_line >= 4:
                     self.next_stop_x = warehouse_coord[0]
                     self.next_stop_y = warehouse_coord[1]
-                    if verbose:
-                        print("- Going back to the warehouse")
+                    #if verbose:
+                    #   print("- Going back to the warehouse")
 
 
                 else:
@@ -199,12 +203,11 @@ class Train(Agent):
                     self.flag_load = False
                     
             if verbose:
-                print("   - Task endtime (hours):", round(self.task_endtime/3600, 2), "\n   - Carried weight: ", self.weight)
+                print("   - Task endtime:", round(self.task_endtime/3600, 2),"h", "\n   - Carried weight: ", self.weight,"kg")
         
     def charging(self):
         # Function that simulates the (possible) queuing at the charging station and the battery charging:
-        if verbose:
-            print("\n\n" + self.unique_id, "\n\n   - Remaining charge:", round(self.remaining_energy,4), "kwh.\n - Going to recharge at station", self.selected_charging_station)
+       
 
         # Queuing time (waiting for the charging station to be available):
         self.task_endtime += self.model.schedule_stations.agents[self.selected_charging_station].waiting_time #schedule_stations.agents contains the list of all ChargingStation agents
@@ -221,7 +224,7 @@ class Train(Agent):
         self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.schedule_stations.agents[self.selected_charging_station].waiting_time+self.model.system_time
         self.task_endtime += charging_time
         if verbose:
-            print("Task endtime (hours):", round(self.task_endtime/3600, 2), "- Remaining energy:", self.remaining_energy, "kWh")
+            print("   - Task endtime:", round(self.task_endtime/3600, 2),"h", "\n   - Remaining charge:", self.remaining_energy, "KWh")
         self.next_line = 0
         self.need_to_charge = False
         self.pos_x = charging_stations_x[self.selected_charging_station]
