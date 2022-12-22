@@ -40,11 +40,11 @@ charging_stations_y = [10, 20]   # y coordinates of the first and second chargin
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = False   # Run a verbose simulation
+verbose = True   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 export_df_to_csv = False   # Export df with collected data to csv
-isSearching = True   # Perform grid search
+isSearching = False   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
@@ -54,7 +54,7 @@ verboseSearch = False  # Show each combination of hyperparameters
 #############################
 ### Model hyperparameters ###
 #############################
-hyper_tugger_train_number = [3]
+hyper_tugger_train_number = [1]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
@@ -106,6 +106,9 @@ class Train(Agent):
         self.selected_charging_station = None
         self.weight_capacity = 2000
         self.weight = 0
+
+        # Attribute to correct the functioning of the loading
+        self.flag_load = False
                        
 
     def check_charge(self): #Function that checks if the vehicle battery level is enough to perform the following pick-up tour
@@ -122,66 +125,69 @@ class Train(Agent):
             self.next_stop_y = lines_output_points_y[self.next_line]
             
     def move(self):
-        # Travel of the tugger train to the next stop and the loading/unloading of unit loads:
-        distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-        # Travel time
-        self.task_endtime += u.compute_time(distance_next_stop,
-                                            speed=u.compute_speed(self.weight),
-                                            nextline=self.next_line)
+        if (not self.flag_load) or (self.next_stop_x == warehouse_coord[0] and self.next_stop_y == warehouse_coord[1]) :
+            distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
+            self.task_endtime += u.compute_time(distance_next_stop,
+                                                speed=u.compute_speed(self.weight),
+                                                nextline=self.next_line)
+            self.remaining_energy -= u.compute_energy(
+                u.compute_time(distance_next_stop, speed=u.compute_speed(self.weight), nextline=self.next_line))
+            self.pos_x = self.next_stop_x
+            self.pos_y = self.next_stop_y
+            self.flag_load = True
+            print("Travelled distance:", distance_next_stop, "m", "- Task endtime (hours):",
+                  round(self.task_endtime / 3600, 2), "- Remaining energy:", round(self.remaining_energy, 4),
+                  "kWh", " - Carried weight: ", self.weight)
+        else:
+            if not self.need_to_charge: #If the next stop is not a charging station
+                if (self.pos_x, self.pos_y) != (warehouse_coord[0], warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
+                    while self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
+                        if self.load < self.capacity:
+                            if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:
+                                if verbose:
+                                    print("\n"+self.unique_id, "going to line", self.next_line, "and picking up a unit load")
 
-        self.remaining_energy -= u.compute_energy(u.compute_time(distance_next_stop,
-                                                                 speed=u.compute_speed(self.weight),
-                                                                 nextline=self.next_line))
-        
-        self.pos_x = self.next_stop_x
-        self.pos_y = self.next_stop_y
-        if not self.need_to_charge: #If the next stop is not a charging station
-            if (self.pos_x, self.pos_y) != (warehouse_coord[0], warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
-                while self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
-                    if self.load < self.capacity:
-                        if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:
-                            if verbose:
-                                print("\n"+self.unique_id, "going to line", self.next_line, "and picking up a unit load")
-
-                            # Loading time (between 30 seconds and 60 seconds)
-                            loading_time = random.uniform(30, 60)
-                            self.task_endtime += loading_time
-                            self.remaining_energy -= u.compute_energy_loading(output_weight[self.next_line])
-                            self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
-                            self.load += 1
-                            self.weight += output_weight[self.next_line]
+                                # Loading time (between 30 seconds and 60 seconds)
+                                loading_time = random.uniform(30, 60)
+                                self.task_endtime += loading_time
+                                self.remaining_energy -= u.compute_energy_loading(output_weight[self.next_line])
+                                self.model.schedule_lines.agents[self.next_line].UL_in_buffer -= 1
+                                self.load += 1
+                                self.weight += output_weight[self.next_line]
+                            else:
+                                if verbose:
+                                    print("\n" + self.unique_id, "- Not enough weight capacity left.")
+                                break
                         else:
                             if verbose:
-                                print("\n" + self.unique_id, "- Not enough weight capacity left.")
+                                print("\n"+self.unique_id, "going to line", self.next_line, "- Not enough loading capacity left")
                             break
                     else:
                         if verbose:
-                            print("\n"+self.unique_id, "going to line", self.next_line, "- Not enough loading capacity left")
-                        break
+                            print("\n"+self.unique_id, "going to line", self.next_line, "- No unit loads to be picked up")
                 else:
                     if verbose:
-                        print("\n"+self.unique_id, "going to line", self.next_line, "- No unit loads to be picked up")
-            else:
-                if verbose:
-                    print("\n"+self.unique_id, "going back to the warehouse and unloading", self.load, "unit loads")
-                unloading_time = 30 + random.uniform(30, 60)*self.load
-                self.task_endtime += unloading_time
-                self.remaining_energy -= u.compute_energy_loading(self.weight)
-                self.load = 0
-                self.weight = 0
-        
-            if self.next_line >= 4:
-                self.next_stop_x = warehouse_coord[0]
-                self.next_stop_y = warehouse_coord[1]
+                        print("\n"+self.unique_id, "going back to the warehouse and unloading", self.load, "unit loads")
 
-            else:
-                self.next_line += 1
-                self.next_stop_x = lines_output_points_x[self.next_line]
-                self.next_stop_y = lines_output_points_y[self.next_line]
-        if verbose:
-            print("Travelled distance:", distance_next_stop, "m", "- Task endtime (hours):",
-                  round(self.task_endtime/3600, 2), "- Remaining energy:", round(self.remaining_energy, 2),
-                  "kWh", " - Carried weight: ", self.weight)
+                    unloading_time = 30 + random.uniform(30, 60)*self.load
+                    self.task_endtime += unloading_time
+                    self.remaining_energy -= u.compute_energy_loading(self.weight)
+                    self.load = 0
+                    self.weight = 0
+
+                if self.next_line >= 4:
+                    self.next_stop_x = warehouse_coord[0]
+                    self.next_stop_y = warehouse_coord[1]
+
+                else:
+                    self.next_line += 1
+                    self.next_stop_x = lines_output_points_x[self.next_line]
+                    self.next_stop_y = lines_output_points_y[self.next_line]
+                    self.flag_load = False
+            if verbose:
+                print("- Task endtime (hours):",
+                    round(self.task_endtime/3600, 2), "- Remaining energy:", round(self.remaining_energy, 4),
+                    "kWh", " - Carried weight: ", self.weight)
         
     def charging(self):
         # Function that simulates the (possible) queuing at the charging station and the battery charging:

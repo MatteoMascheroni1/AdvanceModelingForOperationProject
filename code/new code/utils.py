@@ -132,7 +132,7 @@ def progress(percent=0, width=40):
     tags = "=" * left
     spaces = " " * right
     percents = f"{percent:.0f}%"
-    print("\rC", tags, spaces, "3    ", percents, sep="", end="", flush=True)
+    print("\r[", tags, spaces, " ]   ", percents, sep="", end="", flush=True)
 
 
 
@@ -167,8 +167,6 @@ def compute_charging_time(charge:dict, remaining_energy:float, tot_cap:float):
     time = charge[1] - upper_time
     time += interpolated_time
     return time
-
-
 
 
 
