@@ -54,7 +54,7 @@ verboseSearch = False  # Show each combination of hyperparameters
 #############################
 ### Model hyperparameters ###
 #############################
-hyper_tugger_train_number = [1]
+hyper_tugger_train_number = [12]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
@@ -383,7 +383,8 @@ if isSearching:
         dataframe["Saturation_"+str(station+1)] = charging_status[station]
     if export_df_to_csv:
         print("Saving dataframe to csv.")
-        dataframe.to_csv("./output/dataframe.csv")
+        dataframe_results = dataframe.groupby(['Tugger N']).max()
+        dataframe_results.to_csv("./output/dataframe.csv",sep=";",index=False, decimal='.')
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]
