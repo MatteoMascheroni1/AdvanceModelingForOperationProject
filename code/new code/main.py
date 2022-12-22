@@ -130,6 +130,13 @@ class Train(Agent):
     def move(self):
         if (not self.flag_load) or (self.next_stop_x == warehouse_coord[0] and self.next_stop_y == warehouse_coord[1] and self.pos_x== 20.0 and self.pos_y == 80.0) :
             distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
+            if self.flag_load: print ("going to the warehouse")
+            elif (self.next_stop_x == 0 and self.next_stop_y == 10) or (self.next_stop_x == 0 and self.next_stop_y == 20):
+                print("Ricarisiuuuuum")
+            else:
+                print("\n\n" + "\u0332".join(self.unique_id) + "\n\n- Going to line", self.next_line,
+                      "\n   - Travelled distance:", distance_next_stop, "m", "\n   - Carried weight: ", self.weight,
+                      "\n   - Task endtime (hours):", round(self.task_endtime / 3600, 2))
             self.task_endtime += u.compute_time(distance_next_stop,
                                                 speed=u.compute_speed(self.weight),
                                                 nextline=self.next_line)
@@ -138,7 +145,7 @@ class Train(Agent):
             self.pos_x = self.next_stop_x
             self.pos_y = self.next_stop_y
             self.flag_load = True
-            print("\n\n"+"\u0332".join(self.unique_id)+"\n\n- Going to line", self.next_line, "\n   - Travelled distance:", distance_next_stop, "m", "\n   - Carried weight: ", self.weight, "\n   - Task endtime (hours):", round(self.task_endtime / 3600, 2))
+
             
         else:
             if not self.need_to_charge: #If the next stop is not a charging station
@@ -175,8 +182,8 @@ class Train(Agent):
                     self.remaining_energy -= u.compute_energy_loading(self.weight)
                     self.load = 0
                     self.weight = 0
-                    self.next_line =  0
-                    
+                    self.next_line = 0
+                    self.flag_load = False
 
                 if self.next_line >= 4:
                     self.next_stop_x = warehouse_coord[0]
@@ -217,6 +224,8 @@ class Train(Agent):
             print("Task endtime (hours):", round(self.task_endtime/3600, 2), "- Remaining energy:", self.remaining_energy, "kWh")
         self.next_line = 0
         self.need_to_charge = False
+        self.pos_x = charging_stations_x[self.selected_charging_station]
+        self.pos_y = charging_stations_y[self.selected_charging_station]
         self.next_stop_x = lines_output_points_x[self.next_line]
         self.next_stop_y = lines_output_points_y[self.next_line]
 
@@ -243,8 +252,8 @@ class Train(Agent):
             if (self.pos_x, self.pos_y) == (warehouse_coord[0], warehouse_coord[1]) and self.flag_load == False:
                 self.check_charge()
             if self.need_to_charge:
-                self.move()
                 self.charging()
+                self.move()
             else:
                 self.move()
 
