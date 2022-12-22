@@ -134,7 +134,7 @@ class Train(Agent):
             distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
             if self.flag_load: 
                 if verbose:
-                    print ("\n" + "\033[3m" + (self.unique_id) + "\033[0m", "\n- Going to the warehouse", "\n   - Travelled distance:", distance_next_stop, "m")
+                    print ("\n\n" + (self.unique_id), "going to the warehouse", "\n- Travelled distance:", distance_next_stop, "m")
 
             else:
                 if verbose:
@@ -180,7 +180,7 @@ class Train(Agent):
                             print("- No (more) unit loads to be picked up")
                 else:
                     if verbose:
-                        print("   - Unloading", self.load, "unit loads")
+                        print("- Unloading", self.load, "unit loads")
                     unloading_time = 30 + random.uniform(30, 60)*self.load
                     self.task_endtime += unloading_time
                     self.remaining_energy -= u.compute_energy_loading(self.weight)
