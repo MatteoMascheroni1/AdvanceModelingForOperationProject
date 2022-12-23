@@ -54,8 +54,8 @@ export_df_to_csv = True   # Export df with collected data to csv
 #########################
 # Model hyperparameters #
 #########################
-hyper_tugger_train_number = [1]
-hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+hyper_tugger_train_number = [1, 2, 3, 4, 5, 6, 7]
+hyper_ul_buffer = [[3, 3, 3, 3, 3], [3, 3, 3, 4, 5], [5, 5, 5, 5, 5]]
 hyper_tugger_train_capacity = [4]
 
 
@@ -399,10 +399,10 @@ if isSearching:
         dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
     for station in range(2):
         dataframe["Saturation_"+str(station+1)] = charging_status[station]
-    print("Dataset total:", dataframe.shape[0])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv("./output/dataframe.csv", index=False)
+
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]

@@ -97,15 +97,13 @@ def compute_time(distance: float, speed: float, nextline: int = 0, random_flag=T
 
 def compute_energy(time: float, consumption=2.6):
     """
-    time:float
-    consumption: [kwh]
+    :param time: float
+    :param consumption: [kwh]
     Consumption is defined as an average consumption by EN standard.
-
-    Return energy consumed.
-
-    -------
-    float energy
+    -----
+    :return: Energy Consumed
     """
+
     energy = consumption / 3600 * time
     return energy
 
@@ -150,6 +148,12 @@ def read_charging_phases(path: str):
 
 
 def compute_charging_time(charge: dict, remaining_energy: float, tot_cap: float):
+    """
+    :param charge: Dictionary with charging stages
+    :param remaining_energy: Remaining energy of the tugger
+    :param tot_cap: Total capacity of the battery
+    :return: Time to reach full charge
+    """
     percentage = remaining_energy/tot_cap
     for i in charge.keys():
         if percentage <= i:
@@ -166,6 +170,8 @@ def compute_charging_time(charge: dict, remaining_energy: float, tot_cap: float)
     time = charge[1] - upper_time
     time += interpolated_time
     return time
+
+
 
 
 
