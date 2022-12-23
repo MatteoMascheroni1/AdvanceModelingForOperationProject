@@ -396,13 +396,13 @@ if isSearching:
     for j in range(5):
         dataframe["Prod_"+str(j+1)] = lines_production[j]
         dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
-        dataframe["Idle_time_"+str(j+1)] = lines_idle[z]
+        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
     for station in range(2):
         dataframe["Saturation_"+str(station+1)] = charging_status[station]
+    print("Dataset total:", dataframe.shape[0])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
-        dataframe_results = dataframe.groupby(['Tugger N']).max()
-        dataframe_results.to_csv("./output/dataframe.csv", index=False)
+        dataframe.to_csv("./output/dataframe.csv", index=False)
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]

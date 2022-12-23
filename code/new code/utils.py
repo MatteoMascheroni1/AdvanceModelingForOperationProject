@@ -132,7 +132,7 @@ def progress(percent=0, width=40):
     tags = "=" * left
     spaces = " " * right
     percents = f"{percent:.0f}%"
-    print("\r[", tags, spaces, " ]   ", percents, sep="", end="", flush=True)
+    print("\r[", tags, spaces, "] ", percents, sep="", end="", flush=True)
 
 
 def read_charging_phases(path: str):
