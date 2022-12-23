@@ -412,10 +412,6 @@ else:
 
     for i in range(n_shift*wh*3600):  # Seconds
         model.step()
-        for j in range(5):
-            lines_production[j].append(model.schedule_lines.agents[j].total_production)
-            lines_buffer[j].append(model.schedule_lines.agents[j].UL_in_buffer)
-            lines_idle[j].append(model.schedule_lines.agents[j].idle_time)
 
     print("\nSYSTEM PERFORMANCES:")
     print("with",
