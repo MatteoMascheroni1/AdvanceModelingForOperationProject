@@ -12,22 +12,22 @@ import importlib
 importlib.reload(u)
 
 
-#################################
-### Read file for coordinates ###
-#################################
+#############################
+# Read file for coordinates #
+#############################
 path = "./lines_info.csv"
 lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight = u.read_line_info(path)
 
-#####################################
-### Read file for charging phases ###
-#####################################
+#################################
+# Read file for charging phases #
+#################################
 path = "./charging.csv"
 charging_dict = u.read_chargin_phases(path)
 
 
-##################
-### Parameters ###
-##################
+##############
+# Parameters #
+##############
 # Simulation parameters
 n_shift = 2   # Shifts per day
 wh = 8   # Working Hours per shift
@@ -40,29 +40,29 @@ charging_stations_y = [10, 20]   # y coordinates of the first and second chargin
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = True   # Run a verbose simulation
+verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-export_df_to_csv = False   # Export df with collected data to csv
 isSearching = False   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
+export_df_to_csv = False   # Export df with collected data to csv
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
 
 
-#############################
-### Model hyperparameters ###
-#############################
+#########################
+# Model hyperparameters #
+#########################
 hyper_tugger_train_number = [1]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
 
 
-##############################################
-### List to keep track of system evolution ###
-##############################################
+##########################################
+# List to keep track of system evolution #
+##########################################
 lines_production = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_buffer = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
@@ -109,13 +109,12 @@ class Train(Agent):
 
         # Attribute to correct the functioning of the loading
         self.flag_load = False
-                       
 
-    def check_charge(self): #Function that checks if the vehicle battery level is enough to perform the following pick-up tour
+    def check_charge(self):
+        # Function that checks if the vehicle battery level is enough to perform the following pick-up tour
         if self.remaining_energy < self.charge_threshold():
-            #self.selected_charging_station = random.choice(range(len(charging_stations_x))) #One of the charging stations is randomly selected
-        
-            
+            # One of the charging stations is randomly selected
+            # self.selected_charging_station = random.choice(range(len(charging_stations_x)))
             self.selected_charging_station = self.model.schedule_stations.agents.index(min(self.model.schedule_stations.agents, 
                                                                                            key=lambda x:x.waiting_time))
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
@@ -134,13 +133,15 @@ class Train(Agent):
             distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
             if self.flag_load: 
                 if verbose:
-                    print ("\n\n" + (self.unique_id), "going to the warehouse", "\n- Travelled distance:", distance_next_stop, "m")
+                    print("\n\n" + self.unique_id, "going to the warehouse", "\n- Travelled distance:",
+                          distance_next_stop, "m")
 
             else:
                 if verbose:
                     print("\n\n"+ self.unique_id + " going to line", self.next_line,
-                      "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight,"kg",
-                      "\n- Task endtime:", round(self.task_endtime / 3600, 2),"h","\n\n"+ self.unique_id, "at line", self.next_line)
+                          "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight, "kg",
+                          "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + self.unique_id,
+                          "at line", self.next_line)
             self.task_endtime += u.compute_time(distance_next_stop,
                                                 speed=u.compute_speed(self.weight),
                                                 nextline=self.next_line)
@@ -150,15 +151,18 @@ class Train(Agent):
             self.pos_y = self.next_stop_y
             self.flag_load = True
 
-            
         else:
-            if not self.need_to_charge: #If the next stop is not a charging station
-                if (self.pos_x, self.pos_y) != (warehouse_coord[0], warehouse_coord[1]): #If the reached position is a line output point (and not the warehouse)
-                    while self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1: #If there is at least one unit load at the line output point
+            # If the next stop is not a charging station
+            if not self.need_to_charge:
+                # If the reached position is a line output point (and not the warehouse)
+                if (self.pos_x, self.pos_y) != (warehouse_coord[0], warehouse_coord[1]):
+                    # If there is at least one unit load at the line output point
+                    while self.model.schedule_lines.agents[self.next_line].UL_in_buffer >= 1:
                         if self.load < self.capacity:
                             if (self.weight + output_weight[self.next_line]) <= self.weight_capacity:
                                 if verbose:
-                                    print("- Picking up a unit load", "\n   - Task endtime:", round(self.task_endtime/3600, 2),"h")
+                                    print("- Picking up a unit load", "\n   - Task endtime:",
+                                          round(self.task_endtime/3600, 2), "h")
                                     
                                 # Loading time (between 30 seconds and 60 seconds)
                                 loading_time = random.uniform(30, 60)
@@ -192,9 +196,8 @@ class Train(Agent):
                 if self.next_line >= 4:
                     self.next_stop_x = warehouse_coord[0]
                     self.next_stop_y = warehouse_coord[1]
-                    #if verbose:
-                    #   print("- Going back to the warehouse")
-
+                    # if verbose:
+                    #    print("- Going back to the warehouse")
 
                 else:
                     self.next_line += 1
@@ -203,28 +206,26 @@ class Train(Agent):
                     self.flag_load = False
                     
             if verbose:
-                print("   - Task endtime:", round(self.task_endtime/3600, 2),"h", "\n   - Carried weight: ", self.weight,"kg")
+                print("   - Task endtime:", round(self.task_endtime/3600, 2), "h", "\n   - Carried weight: ",
+                      self.weight, "kg")
         
     def charging(self):
         # Function that simulates the (possible) queuing at the charging station and the battery charging:
-       
-
         # Queuing time (waiting for the charging station to be available):
-        self.task_endtime += self.model.schedule_stations.agents[self.selected_charging_station].waiting_time #schedule_stations.agents contains the list of all ChargingStation agents
+        # schedule_stations.agents contains the list of all ChargingStation agents
+        self.task_endtime += self.model.schedule_stations.agents[self.selected_charging_station].waiting_time
 
         # The battery is fully charged
         charging_size = self.battery_size - self.remaining_energy
-        # A questo punto la potenza diventa inutile
-        # dovremo spiegare che abbiamo sentito un esperto (il prof di super mix) e che lui ci ha detto che possiamo
-        # approssimare la carica del tugger train con la carica dell'iphone...
-        # power = 4.9   # [kW] - Power of the charging station
         charging_time = u.compute_charging_time(charging_dict, self.remaining_energy, self.battery_size)  # seconds
         self.remaining_energy += charging_size
         self.model.schedule_stations.agents[self.selected_charging_station].waiting_time += charging_time
         self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.schedule_stations.agents[self.selected_charging_station].waiting_time+self.model.system_time
         self.task_endtime += charging_time
         if verbose:
-            print("   - Task endtime:", round(self.task_endtime/3600, 2),"h", "\n   - Remaining charge:", self.remaining_energy, "KWh")
+            print("   - Task endtime:", round(self.task_endtime/3600, 2), "h", "\n   - Remaining charge:",
+                  self.remaining_energy, "KWh")
+
         self.next_line = 0
         self.need_to_charge = False
         self.pos_x = charging_stations_x[self.selected_charging_station]
@@ -350,9 +351,9 @@ class FactoryModel(Model):
         self.schedule_stations.step()
 
 
-##############################
-### Running the simulation ###
-##############################
+##########################
+# Running the simulation #
+##########################
 
 if isSearching:
     counting = 0
@@ -401,7 +402,7 @@ if isSearching:
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe_results = dataframe.groupby(['Tugger N']).max()
-        dataframe_results.to_csv("./output/dataframe.csv",sep=";",index=False, decimal='.')
+        dataframe_results.to_csv("./output/dataframe.csv", index=False)
 
 else:
     tugger_train_number = hyper_tugger_train_number[0]
