@@ -32,7 +32,7 @@ def read_line_info(path: str, conversion_factor=60):
     return x, y, cycle_times, weights
 
 
-def compute_distance(x1: float, x2: float, y1: float, y2: float, max_x=max_x):
+def compute_distance(x1: float, x2: float, y1: float, y2: float, max_x = max_x):
     """
     x1:float, x2:float, y1:float, y2:float, max_x
 
@@ -64,6 +64,7 @@ def compute_speed(weight: float, max_weight: float = 2000):
     speed_max = 1.6
     speed = speed_max - weight / max_weight * (speed_max - speed_min)
     return speed
+
 
 def compute_time(distance: float, speed: float, nextline: int = 0, random_flag=True):
     """
@@ -111,7 +112,6 @@ def compute_energy(time: float, consumption=2.6):
 
 def compute_energy_loading(weight: float):
     """
-
     Parameters
     weight:float
 
@@ -135,8 +135,7 @@ def progress(percent=0, width=40):
     print("\r[", tags, spaces, " ]   ", percents, sep="", end="", flush=True)
 
 
-
-def read_chargin_phases(path:str):
+def read_charging_phases(path: str):
     """
     :param path: path of the csv file
     :return: dict with all the charging data
@@ -150,13 +149,13 @@ def read_chargin_phases(path:str):
     return charge
 
 
-def compute_charging_time(charge:dict, remaining_energy:float, tot_cap:float):
+def compute_charging_time(charge: dict, remaining_energy: float, tot_cap: float):
     percentage = remaining_energy/tot_cap
     for i in charge.keys():
-        if percentage<=i:
+        if percentage <= i:
             max_index = i
             break
-        if percentage>=i:
+        if percentage >= i:
             min_index = i
 
     upper_time = charge[max_index]

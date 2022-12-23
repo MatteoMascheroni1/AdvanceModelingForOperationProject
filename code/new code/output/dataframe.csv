@@ -1,7 +1,2 @@
-Time;Buffer;Tugger Capacity;Prod_1;UL_in_buffer_1;Idle_time_1;Prod_2;UL_in_buffer_2;Idle_time_2;Prod_3;UL_in_buffer_3;Idle_time_3;Prod_4;UL_in_buffer_4;Idle_time_4;Prod_5;UL_in_buffer_5;Idle_time_5;Saturation_1;Saturation_2
-57599;[3, 3, 3, 3, 3];4;49;3;54900;75;3;54900;38;3;54900;19;3;54900;5;3;54900;True;False
-57599;[3, 3, 3, 3, 3];4;54;3;20880;85;3;20880;42;3;20880;56;3;20880;68;3;20880;True;True
-57599;[3, 3, 3, 3, 3];4;63;3;16560;102;3;16560;50;3;16560;68;3;16560;76;3;16560;True;True
-57599;[3, 3, 3, 3, 3];4;62;3;5096;101;3;5096;50;3;5096;73;3;5096;97;3;5096;True;True
-57599;[3, 3, 3, 3, 3];4;63;3;2852;103;3;2852;52;3;2852;76;3;2852;101;3;2852;True;True
-57599;[3, 3, 3, 3, 3];4;61;3;5322;100;3;5322;51;3;5322;73;3;5322;96;3;5322;True;True
+Time,Buffer,Tugger Capacity,Prod_1,UL_in_buffer_1,Idle_time_1,Prod_2,UL_in_buffer_2,Idle_time_2,Prod_3,UL_in_buffer_3,Idle_time_3,Prod_4,UL_in_buffer_4,Idle_time_4,Prod_5,UL_in_buffer_5,Idle_time_5,Saturation_1,Saturation_2
+57599,"[3, 3, 3, 3, 3]",4,49,3,55440,76,3,55440,38,3,55440,23,3,55440,4,3,55440,True,False

@@ -22,7 +22,7 @@ lines_output_points_x, lines_output_points_y, lines_cycle_times, output_weight =
 # Read file for charging phases #
 #################################
 path = "./charging.csv"
-charging_dict = u.read_chargin_phases(path)
+charging_dict = u.read_charging_phases(path)
 
 
 ##############
@@ -43,9 +43,9 @@ battery_size = 4.8   # kWh
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-isSearching = False   # Perform grid search
+isSearching = True   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
-export_df_to_csv = False   # Export df with collected data to csv
+export_df_to_csv = True   # Export df with collected data to csv
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
