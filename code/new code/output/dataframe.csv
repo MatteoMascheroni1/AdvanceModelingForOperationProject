@@ -1,2 +1,2 @@
 Time,Buffer,Tugger Capacity,Prod_1,UL_in_buffer_1,Idle_time_1,Prod_2,UL_in_buffer_2,Idle_time_2,Prod_3,UL_in_buffer_3,Idle_time_3,Prod_4,UL_in_buffer_4,Idle_time_4,Prod_5,UL_in_buffer_5,Idle_time_5,Saturation_1,Saturation_2
-57599,"[3, 3, 3, 3, 3]",4,49,3,55440,76,3,55440,38,3,55440,23,3,55440,4,3,55440,True,False
+57599,"[3, 3, 3, 3, 3]",4,49,3,54900,76,3,54900,38,3,54900,20,3,54900,5,3,54900,True,False
