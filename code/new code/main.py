@@ -54,8 +54,8 @@ export_df_to_csv = True   # Export df with collected data to csv
 #########################
 # Model hyperparameters #
 #########################
-hyper_tugger_train_number = [1, 2, 3, 4, 5, 6, 7]
-hyper_ul_buffer = [[3, 3, 3, 3, 3], [3, 3, 3, 4, 5], [5, 5, 5, 5, 5]]
+hyper_tugger_train_number = [i for i in range(1, 31 ,1)]
+hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
 
