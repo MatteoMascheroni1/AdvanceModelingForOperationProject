@@ -1,6 +1,3 @@
-ID,x,y,Avg_CT,Weight_UL
-0,20,10,15,400,
-1,40,0,9,600,
-2,70,0,18,700,
-3,50,80,12,500,
-4,20,80,9,500,
+version https://git-lfs.github.com/spec/v1
+oid sha256:ce2f4de6542e9ff71e566b80b06df81f9f3884f90f9d93a7c857d6f1df54de4c
+size 106
