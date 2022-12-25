@@ -1,0 +1,10 @@
+name: simOps
+channels:
+  - conda-forge
+dependencies:
+  - spyder=5.3.3
+  - matplotlib
+  - scipy
+  - jupyterlab
+  - feather-format
+prefix: /Users/federicocantarelli/miniforge3/envs/simOps

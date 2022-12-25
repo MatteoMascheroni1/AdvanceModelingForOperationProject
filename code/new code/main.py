@@ -45,7 +45,12 @@ system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 isSearching = True   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
+
+
+# Save output
+path = "./output/"
 export_df_to_csv = True   # Export df with collected data to csv
+export_df_to_feather = True  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -401,7 +406,10 @@ if isSearching:
         dataframe["Saturation_"+str(station+1)] = charging_status[station]
     if export_df_to_csv:
         print("Saving dataframe to csv.")
-        dataframe.to_csv("./output/dataframe.csv", index=False)
+        dataframe.to_csv(path + "dataframe.csv", index=False)
+
+    if export_df_to_feather:
+        dataframe.to_feather(path + "dataframe.feather")
 
 
 else:
