@@ -265,7 +265,8 @@ class Train(Agent):
                 self.check_charge()
             if self.need_to_charge:
                 self.charging()
-                self.move()
+                if self.task_endtime < n_shift*wh*3600:
+                    self.move()
             else:
                 self.move()
 
