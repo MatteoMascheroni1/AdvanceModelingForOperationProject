@@ -35,22 +35,20 @@ seed = 42
 
 # Model Parameters
 warehouse_coord = [0, 80]   # x and y coordinates of the warehouse input point
-charging_stations_x = [0, 0]   # x coordinates of the first and second charging station, respectively
-charging_stations_y = [10, 20]   # y coordinates of the first and second charging station, respectively
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = False   # Run a verbose simulation
+verbose = False  # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 isSearching = True   # Perform grid search
-verboseSearch = False  # Show each combination of hyperparameters
+verboseSearch = True  # Show each combination of hyperparameters
 
 
 # Save output
 path = "./output/"
 export_df_to_csv = True   # Export df with collected data to csv
-export_df_to_feather = True  # Export df to feather format
+export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -59,9 +57,10 @@ export_df_to_feather = True  # Export df to feather format
 #########################
 # Model hyperparameters #
 #########################
-hyper_tugger_train_number = [i for i in range(1, 31 ,1)]
+hyper_tugger_train_number = [12]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
+hyper_n_charging_stations = [2, 3]  # not more than 5 for space constraints
 
 
 
@@ -71,11 +70,13 @@ hyper_tugger_train_capacity = [4]
 lines_production = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_buffer = {0: [], 1: [], 2: [], 3: [], 4: []}
 lines_idle = {0: [], 1: [], 2: [], 3: [], 4: []}
-charging_status = {0: [], 1: []}
+#charging_status = {0: [], 1: []}
 
 param_buff = []
 param_capacity = []
 param_tuggers = []
+param_stations = []
+param_saturation = []
 time = []
 
 class Train(Agent):
@@ -233,6 +234,7 @@ class Train(Agent):
 
         self.next_line = 0
         self.need_to_charge = False
+
         self.pos_x = charging_stations_x[self.selected_charging_station]
         self.pos_y = charging_stations_y[self.selected_charging_station]
         self.next_stop_x = lines_output_points_x[self.next_line]
@@ -362,51 +364,54 @@ class FactoryModel(Model):
 
 if isSearching:
     counting = 0
-    combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)
+    combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)*len(hyper_n_charging_stations)
     total = combination*n_shift*wh*3600
     print("Starting...")
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
-                tugger_train_capacity = h
-                tugger_train_number = j
-                ul_buffer = k
-                if verboseSearch:
-                    print("Started with (buffer, tugger N, tugger capacity):",
-                          k, "-", j, "-", h)
-                model = FactoryModel(seed=seed)
-                for i in range(n_shift*wh*3600):
-                    model.step()
-                    time.append(i)
-                    param_buff.append(k)
-                    param_capacity.append(h)
-                    param_tuggers.append(j)
-                    for z in range(5):
-                        lines_production[z].append(model.schedule_lines.agents[z].total_production)
-                        lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
-                        lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
-                    for station in range(2):
-                        charging_status[station].append(model.schedule_stations.agents[station].is_charging)
-
-                    u.progress(int(round(counting/total*100, 0)))
-                    counting += 1
+                for s in hyper_n_charging_stations:
+                    charging_stations_x = [i*0 for i in range(s)]  # x coordinates of the first and second charging station, respectively
+                    charging_stations_y = [(i+1)*10 for i in range(s)]  # y coordinates of the first and second charging station, respectively
+                    tugger_train_capacity = h
+                    tugger_train_number = j
+                    ul_buffer = k
+                    if verboseSearch:
+                        print("\nStarted with (buffer, tugger N, tugger capacity, number of recharging stations):",
+                              k, "-", j, "-", h, "-", s)
+                    model = FactoryModel(seed=seed)
+                    for i in range(n_shift*wh*3600):
+                        model.step()
+                        time.append(i)
+                        param_buff.append(k)
+                        param_capacity.append(h)
+                        param_tuggers.append(j)
+                        param_stations.append(s)
+                        saturation = 0
+                        for z in range(5):
+                            lines_production[z].append(model.schedule_lines.agents[z].total_production)
+                            lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
+                            lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
+                        for station in range(s):
+                            saturation += model.schedule_stations.agents[station].is_charging
+                        param_saturation.append(saturation/(s))
+                        u.progress(int(round(counting/total*100, 0)))
+                        counting += 1
 
     print("\nSimulation ended.")
     print("Model performed", combination, "hyperparameters combinations.")
     print("Total iterations:", total)
 
-    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
-                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
+    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity, param_stations,param_saturation),
+                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity", "N Stations", "Station Saturation"])
 
     for j in range(5):
         dataframe["Prod_"+str(j+1)] = lines_production[j]
         dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
         dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
-    for station in range(2):
-        dataframe["Saturation_"+str(station+1)] = charging_status[station]
     if export_df_to_csv:
         print("Saving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe.csv", index=False)
+        dataframe.to_csv(path + "dataframe.csv", index=False, sep=";", decimal= ".")
 
     if export_df_to_feather:
         dataframe.to_feather(path + "dataframe.feather")
@@ -416,6 +421,8 @@ else:
     tugger_train_number = hyper_tugger_train_number[0]
     tugger_train_capacity = hyper_tugger_train_capacity[0]
     ul_buffer = hyper_ul_buffer[0]
+    charging_stations_x = [i * 0 for i in range(hyper_tugger_train_capacity[0]-1)]  # x coordinates of the first and second charging station, respectively
+    charging_stations_y = [(i + 1) * 10 for i in range(hyper_tugger_train_capacity[0]-1)]  # y coordinates of the first and second charging station, respectively
     model = FactoryModel(seed=seed)
 
     for i in range(n_shift*wh*3600):  # Seconds
