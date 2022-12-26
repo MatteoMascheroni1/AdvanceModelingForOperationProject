@@ -149,7 +149,7 @@ class Train(Agent):
                 if verbose:
                     print("\n\n"+ self.unique_id + " going to line", self.next_line,
                           "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight, "kg",
-                          "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + self.unique_id,
+                          "\n- Task endtime:", round(self.task_endtime / 3600, 5), "h", "\n\n" + self.unique_id,
                           "at line", self.next_line)
 
             self.remaining_energy -= u.compute_energy(
@@ -230,7 +230,7 @@ class Train(Agent):
         self.model.schedule_stations.agents[self.selected_charging_station].task_endtime = self.model.schedule_stations.agents[self.selected_charging_station].waiting_time+self.model.system_time
         self.task_endtime += charging_time
         if verbose:
-            print("   - Task endtime:", round(self.task_endtime/3600, 2), "h", "\n   - Remaining charge:",
+            print("   - Task endtime:", round(self.task_endtime/3600, 5), "h", "\n   - Remaining charge:",
                   self.remaining_energy, "KWh")
 
         self.next_line = 0
@@ -395,7 +395,7 @@ if isSearching:
                             lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
                         for station in range(s):
                             saturation += model.schedule_stations.agents[station].is_charging
-                        param_saturation.append(saturation/(s   ))
+                        param_saturation.append(saturation/(s))
                         u.progress(int(round(counting/total*100, 0)))
                         counting += 1
 
