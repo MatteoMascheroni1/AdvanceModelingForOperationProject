@@ -38,11 +38,11 @@ warehouse_coord = [0, 80]   # x and y coordinates of the warehouse input point
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = False  # Run a verbose simulation
+verbose = True  # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-isSearching = True   # Perform grid search
-verboseSearch = True  # Show each combination of hyperparameters
+isSearching = False   # Perform grid search
+verboseSearch = False  # Show each combination of hyperparameters
 
 
 # Save output
@@ -57,10 +57,10 @@ export_df_to_feather = False  # Export df to feather format
 #########################
 # Model hyperparameters #
 #########################
-hyper_tugger_train_number = [12]
+hyper_tugger_train_number = [1]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_stations = [2, 3]  # not more than 5 for space constraints
+hyper_n_charging_stations = [2]  # not more than 5 for space constraints
 
 
 
@@ -137,7 +137,10 @@ class Train(Agent):
     def move(self):
         if (not self.flag_load) or (self.next_stop_x == warehouse_coord[0] and self.next_stop_y == warehouse_coord[1] and self.pos_x== 20.0 and self.pos_y == 80.0) :
             distance_next_stop = u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y)
-            if self.flag_load: 
+            self.task_endtime += u.compute_time(distance_next_stop,
+                                                speed=u.compute_speed(self.weight),
+                                                nextline=self.next_line)
+            if self.flag_load:
                 if verbose:
                     print("\n\n" + self.unique_id, "going to the warehouse", "\n- Travelled distance:",
                           distance_next_stop, "m")
@@ -148,9 +151,7 @@ class Train(Agent):
                           "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight, "kg",
                           "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + self.unique_id,
                           "at line", self.next_line)
-            self.task_endtime += u.compute_time(distance_next_stop,
-                                                speed=u.compute_speed(self.weight),
-                                                nextline=self.next_line)
+
             self.remaining_energy -= u.compute_energy(
                 u.compute_time(distance_next_stop, speed=u.compute_speed(self.weight), nextline=self.next_line))
             self.pos_x = self.next_stop_x
@@ -394,7 +395,7 @@ if isSearching:
                             lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
                         for station in range(s):
                             saturation += model.schedule_stations.agents[station].is_charging
-                        param_saturation.append(saturation/(s))
+                        param_saturation.append(saturation/(s   ))
                         u.progress(int(round(counting/total*100, 0)))
                         counting += 1
 
