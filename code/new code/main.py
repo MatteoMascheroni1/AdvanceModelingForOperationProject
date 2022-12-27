@@ -30,7 +30,7 @@ charging_dict = u.read_charging_phases(path)
 ##############
 # Simulation parameters
 n_shift = 2   # Shifts per day
-wh = 8   # Working Hours per shift
+wh = 7.5   # Working Hours per shift
 seed = 42
 
 # Model Parameters
@@ -85,7 +85,7 @@ class Train(Agent):
         self.battery_size = battery_size   # [kWh]
 
         # initial battery charge is 60% and 100% of the maximum
-        self.remaining_energy = battery_size * random.uniform(0.6, 1)   # [kWh]
+        self.remaining_energy = battery_size * random.uniform(0.05, 0.98)   # [kWh]
         self.capacity = tugger_train_capacity   # Maximum number of unit loads which can be loaded on a tugger train
         self.load = 0   # Current load of the tugger train
 
@@ -380,7 +380,7 @@ if isSearching:
                         print("\nStarted with (buffer, tugger N, tugger capacity, number of recharging stations):",
                               k, "-", j, "-", h, "-", s)
                     model = FactoryModel(seed=seed)
-                    for i in range(n_shift*wh*3600):
+                    for i in range(int(n_shift*wh*3600)):
                         model.step()
                         time.append(i)
                         param_buff.append(k)
@@ -425,7 +425,7 @@ else:
     charging_stations_y = [(i + 1) * 10 for i in range(hyper_tugger_train_capacity[0]-1)]  # y coordinates of the first and second charging station, respectively
     model = FactoryModel(seed=seed)
 
-    for i in range(n_shift*wh*3600):  # Seconds
+    for i in range(int(n_shift*wh*3600)):  # Seconds
         model.step()
 
     print("\nSYSTEM PERFORMANCES:")
