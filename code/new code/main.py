@@ -47,7 +47,7 @@ verboseSearch = False  # Show each combination of hyperparameters
 
 # Save output
 path = "./output/"
-export_df_to_csv = True   # Export df with collected data to csv
+export_df_to_csv = False   # Export df with collected data to csv
 export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
@@ -265,8 +265,6 @@ class Train(Agent):
                 self.check_charge()
             if self.need_to_charge:
                 self.charging()
-                if self.task_endtime < n_shift*wh*3600:
-                    self.move()
             else:
                 self.move()
 
