@@ -30,7 +30,7 @@ charging_dict = u.read_charging_phases(path)
 ##############
 # Simulation parameters
 n_shift = 2   # Shifts per day
-wh = 8   # Working Hours per shift
+wh = 7.5  # Working Hours per shift
 seed = 42
 
 # Model Parameters
@@ -43,14 +43,20 @@ battery_size = 4.8   # kWh
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-isSearching = True   # Perform grid search
+isSearching = False   # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
+
+
+# Parameters to find N
+findN = True  # Set to True to find N
+N = 3
+alpha = 0.05
 
 
 # Save output
 path = "./output/"
 export_df_to_csv = True   # Export df with collected data to csv
-export_df_to_feather = True  # Export df to feather format
+export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -59,7 +65,10 @@ export_df_to_feather = True  # Export df to feather format
 #########################
 # Model hyperparameters #
 #########################
-hyper_tugger_train_number = [i for i in range(1, 31 ,1)]
+
+# If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
+# Same for findN
+hyper_tugger_train_number = [3]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
@@ -126,7 +135,7 @@ class Train(Agent):
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
             self.need_to_charge = True
             if verbose:
-                print("\n\n" + self.unique_id, "in need of charging\n- Remaining charge:", round(self.remaining_energy,4), "KWh\n- Going to recharge at station", self.selected_charging_station,"\n   - Travelled distance:", u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y), "m")  
+                print("\n\n", self.unique_id, "in need of charging\n- Remaining charge:", round(self.remaining_energy, 4), "KWh\n- Going to recharge at station", self.selected_charging_station, "\n   - Travelled distance:", u.compute_distance(self.pos_x, self.next_stop_x, self.pos_y, self.next_stop_y), "m")
             
         else: 
             self.next_line = 0
@@ -143,7 +152,7 @@ class Train(Agent):
 
             else:
                 if verbose:
-                    print("\n\n"+ self.unique_id + " going to line", self.next_line,
+                    print("\n\n", self.unique_id + " going to line", self.next_line,
                           "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight, "kg",
                           "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + self.unique_id,
                           "at line", self.next_line)
@@ -363,7 +372,7 @@ class FactoryModel(Model):
 if isSearching:
     counting = 0
     combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)
-    total = combination*n_shift*wh*3600
+    total = int(combination*n_shift*wh*3600)
     print("Starting...")
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
@@ -375,7 +384,7 @@ if isSearching:
                     print("Started with (buffer, tugger N, tugger capacity):",
                           k, "-", j, "-", h)
                 model = FactoryModel(seed=seed)
-                for i in range(n_shift*wh*3600):
+                for i in range(int(n_shift*wh*3600)):
                     model.step()
                     time.append(i)
                     param_buff.append(k)
@@ -409,7 +418,41 @@ if isSearching:
         dataframe.to_csv(path + "dataframe.csv", index=False)
 
     if export_df_to_feather:
+        print("Saving dataframe to feather.")
         dataframe.to_feather(path + "dataframe.feather")
+
+
+elif findN:
+    mean_idle_list = []
+    tugger_train_number = hyper_tugger_train_number[0]
+    tugger_train_capacity = hyper_tugger_train_capacity[0]
+    ul_buffer = hyper_ul_buffer[0]
+    print("Starting the procedure to find N...")
+    while True:
+        print("Testing N: " + str(N))
+        for j in range(N):
+            model = FactoryModel(seed=seed)
+            for i in range(int(n_shift * wh * 3600)):  # Seconds
+                model.step()
+            current_idle = []
+            for i in range(5):
+                current_idle.append(model.schedule_lines.agents[i].idle_time)
+            mean_idle_list.append(statistics.mean(current_idle))
+
+        # Da qua in giù non sono sicuro, è un po' tardi e non ho ben capito cosa fa la prof ma il succo è questo,
+        # bisogna solo capire bene qual è la condizione per far uscire dal while True
+        s = statistics.variance(mean_idle_list)
+        quantile = scipy.stats.t.ppf(1 - alpha / 2, N - 1)
+        c = quantile * (s / N) ** 0.5
+        if c <= 0.01*statistics.mean(mean_idle_list):
+            break
+        else:
+            N = N + 1
+    print("N for confidence is " + str(N))
+    print(mean_idle_list)
+    if (len(hyper_tugger_train_number) + len(hyper_ul_buffer) + len(hyper_tugger_train_capacity)) > 3:
+        print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
+                "combination of a parameters. The first combination of parameters was used.\n*****")
 
 
 else:
@@ -418,7 +461,7 @@ else:
     ul_buffer = hyper_ul_buffer[0]
     model = FactoryModel(seed=seed)
 
-    for i in range(n_shift*wh*3600):  # Seconds
+    for i in range(int(n_shift*wh*3600)):  # Seconds
         model.step()
 
     print("\nSYSTEM PERFORMANCES:")
@@ -437,6 +480,9 @@ else:
             print("Check actual prod:", round(lines_production[i][-1]))
             print("Total time - Len of prod - Len of prod:", n_shift*wh*3600, len(lines_production[i]), len(lines_idle[i]))
         print("************\n")
+    if (len(hyper_tugger_train_number) + len(hyper_ul_buffer) + len(hyper_tugger_train_capacity)) > 3:
+        print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
+              "combination of a parameters. The first combination of parameters was used.\n*****")
 
 # plt.plot(dataframe.Time, dataframe.Saturation_1, label="Stazione 1")
 # plt.plot(dataframe.Time, dataframe.Saturation_2, label="Stazione 2")
