@@ -7,6 +7,7 @@ import pandas as pd
 import scipy.stats
 import matplotlib.pyplot as plt
 from time import sleep
+import csv
 
 import importlib
 importlib.reload(u)
@@ -43,19 +44,19 @@ battery_size = 4.8   # kWh
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-isSearching = False   # Perform grid search
+isSearching = False  # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
 
 
 # Parameters to find N
 findN = True  # Set to True to find N
-N = 3
+N = 5000
 alpha = 0.05
-
+precision = 0.0125
 
 # Save output
 path = "./output/"
-export_df_to_csv = True   # Export df with collected data to csv
+export_df_to_csv = False  # Export df with collected data to csv
 export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
@@ -68,7 +69,7 @@ export_df_to_feather = False  # Export df to feather format
 
 # If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
 # Same for findN
-hyper_tugger_train_number = [3]
+hyper_tugger_train_number = [4]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 
@@ -399,84 +400,62 @@ if isSearching:
 
                     u.progress(int(round(counting/total*100, 0)))
                     counting += 1
-
-    print("\nSimulation ended.")
-    print("Model performed", combination, "hyperparameters combinations.")
-    print("Total iterations:", total)
-
-    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
-                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
-
-    for j in range(5):
-        dataframe["Prod_"+str(j+1)] = lines_production[j]
-        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
-        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
-    for station in range(2):
-        dataframe["Saturation_"+str(station+1)] = charging_status[station]
-    if export_df_to_csv:
-        print("Saving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe.csv", index=False)
-
-    if export_df_to_feather:
-        print("Saving dataframe to feather.")
-        dataframe.to_feather(path + "dataframe.feather")
-
-
-elif findN:
-   # Se hai un tostapane, non runnarlo, ho salvato tutto nel file di testo e si può aprire utilizzando il notebook
-   # che ho usato anche per fare il plot dell'ultimo grafico
-
-    # Creazione della lista per tenere traccia del tempo medio per ciascun N
-    mean_idle_list = []
-
-    # Setup dei parametri
-    tugger_train_number = hyper_tugger_train_number[0]
-    tugger_train_capacity = hyper_tugger_train_capacity[0]
-    ul_buffer = hyper_ul_buffer[0]
-    print("Starting the procedure to find N...")
-    while True:
-        print("Testing N: " + str(N))
-        # Lista per tenere traccia di tutti lgi average idle per N corrente
-        # Vuol dire che per ogni N verranno salvati N idle time medi
-        mean_idle = []
-        for j in range(N):
+                    
+                    print("\Hyperparameter search simulation completed.")
+                    print(combination, "Number of hyperparameters combinations have been performed.")
+                    print("Total iterations:", total)
+                
+                    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
+                                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
+                
+                    for j in range(5):
+                        dataframe["Prod_"+str(j+1)] = lines_production[j]
+                        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
+                        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
+                    for station in range(2):
+                        dataframe["Saturation_"+str(station+1)] = charging_status[station]
+                    if export_df_to_csv:
+                        print("Saving dataframe to csv.")
+                        dataframe.to_csv(path + "dataframe.csv", index=False)
+                
+                    if export_df_to_feather:
+                        print("Saving dataframe to feather.")
+                        dataframe.to_feather(path + "dataframe.feather")
+                
+elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
+    while True: 
+        mean_idle_times = [] # List of means
+        # Parameters' setup: This should be coherent with what tried in the isSearch result
+        tugger_train_number = hyper_tugger_train_number[0]
+        tugger_train_capacity = hyper_tugger_train_capacity[0]
+        ul_buffer = hyper_ul_buffer[0]
+        print("Starting the procedure to find N...")
+        print("Testing N:", N)
+        for q in range(N):
+            # print('Simulation run', q)
             model = FactoryModel(seed=seed)
-            for i in range(int(n_shift * wh * 3600)):  # Seconds
-                model.step()
-            # Lista per calcolare l'average idle time per ogni volta che il modello viene runnato
-            current_idle = []
-
-            for i in range(5):
-                current_idle.append(model.schedule_lines.agents[i].idle_time)
-
-            mean_idle.append(statistics.mean(current_idle))
-        mean_idle_list.append(statistics.mean(mean_idle))  # Qua viene appesa la media dell'idle time medio per ciascun N
-
-
-        # Da qua in giù non sono sicuro, è un po' tardi e non ho ben capito cosa fa la prof ma il succo è questo,
-        # bisogna solo capire bene qual è la condizione per far uscire dal while True
-        # In più noi non stiamo tenendo traccia di una variabile aleatoria ma di ua media di variabili aleatorie, non
-        # se cambi qualcosa
-
-        # Il codice qua sotto dalle slides della prof
-        # s = statistics.variance(mean_idle_list)
-        # quantile = scipy.stats.t.ppf(1 - alpha / 2, N - 1)
-        # c = quantile * (s / N) ** 0.5
-        # if c <= 0.01*statistics.mean(mean_idle_list):
-          #  break
-        if N == 100:  # Solo per il debug questa condizione
-            with open("./mean.txt", "w") as f:
-                for j in mean_idle_list:
-                    f.write(str(j))
-                    f.write("\n")
+            idle_times = [] # Creating a list of idle_times for each run
+            for i in range(int(n_shift*wh*3600)):
+                model.step()  
+                for w in range(5):
+                    idle_times.append(model.schedule_lines.agents[w].idle_time)
+            mean_idle_times.append(statistics.mean(idle_times))
+        s = statistics.variance(mean_idle_times)
+        quantile = scipy.stats.t.ppf(1 - alpha / 2, N - 1)
+        c = quantile * (s / N) ** 0.5
+        if c <= precision*statistics.mean(mean_idle_times):
+            with open("./mean.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(mean_idle_times) 
             break
         else:
-            N = N + 1
-    print("N for confidence is " + str(N))
-    print(mean_idle_list)
+            N = N + 500
+            
+    print("N is " + str(N))
+
     if (len(hyper_tugger_train_number) + len(hyper_ul_buffer) + len(hyper_tugger_train_capacity)) > 3:
-        print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
-                "combination of a parameters. The first combination of parameters was used.\n*****")
+       print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
+               "combination of a parameters. The first combination of parameters was used.\n*****")
 
 
 else:
