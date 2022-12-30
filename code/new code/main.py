@@ -72,6 +72,7 @@ export_df_to_feather = False  # Export df to feather format
 hyper_tugger_train_number = [4]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
+hyper_n_charging_station = [2]
 
 
 
@@ -86,6 +87,8 @@ charging_status = {0: [], 1: []}
 param_buff = []
 param_capacity = []
 param_tuggers = []
+param_stations = []
+param_saturation = []
 time = []
 
 class Train(Agent):
@@ -378,49 +381,54 @@ if isSearching:
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
-                tugger_train_capacity = h
-                tugger_train_number = j
-                ul_buffer = k
-                if verboseSearch:
-                    print("Started with (buffer, tugger N, tugger capacity):",
-                          k, "-", j, "-", h)
-                model = FactoryModel(seed=seed)
-                for i in range(int(n_shift*wh*3600)):
-                    model.step()
-                    time.append(i)
-                    param_buff.append(k)
-                    param_capacity.append(h)
-                    param_tuggers.append(j)
-                    for z in range(5):
-                        lines_production[z].append(model.schedule_lines.agents[z].total_production)
-                        lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
-                        lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
-                    for station in range(2):
-                        charging_status[station].append(model.schedule_stations.agents[station].is_charging)
+                for s in hyper_n_charging_station:
+                    charging_stations_x = [i*0 in range(s)]
+                    charging_stations_y = [(i+1)*10 for i in range(s)]
+                    tugger_train_capacity = h
+                    tugger_train_number = j
+                    ul_buffer = k
+                    if verboseSearch:
+                        print("Started with (buffer, tugger N, tugger capacity, number of stations):",
+                              k, "-", j, "-", h, "-", s)
+                    model = FactoryModel(seed=seed)
+                    for i in range(int(n_shift*wh*3600)):
+                        model.step()
+                        time.append(i)
+                        param_buff.append(k)
+                        param_capacity.append(h)
+                        param_tuggers.append(j)
+                        param_stations.append(s)
+                        saturation= 0
+                        for z in range(5):
+                            lines_production[z].append(model.schedule_lines.agents[z].total_production)
+                            lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
+                            lines_idle[z].append(model.schedule_lines.agents[z].idle_time)
+                        for station in range(s):
+                            saturation += model.schedule_stations.agents[station].is_charging
+                        param_saturation.append(saturation /s)
+                        u.progress(int(round(counting/total*100, 0)))
+                        counting += 1
 
-                    u.progress(int(round(counting/total*100, 0)))
-                    counting += 1
-                    
-                    print("\Hyperparameter search simulation completed.")
-                    print(combination, "Number of hyperparameters combinations have been performed.")
-                    print("Total iterations:", total)
-                
-                    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity),
-                                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity"])
-                
-                    for j in range(5):
-                        dataframe["Prod_"+str(j+1)] = lines_production[j]
-                        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
-                        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
-                    for station in range(2):
-                        dataframe["Saturation_"+str(station+1)] = charging_status[station]
-                    if export_df_to_csv:
-                        print("Saving dataframe to csv.")
-                        dataframe.to_csv(path + "dataframe.csv", index=False)
-                
-                    if export_df_to_feather:
-                        print("Saving dataframe to feather.")
-                        dataframe.to_feather(path + "dataframe.feather")
+                        print("\Hyperparameter search simulation completed.")
+                        print(combination, "Number of hyperparameters combinations have been performed.")
+                        print("Total iterations:", total)
+
+    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity,param_stations,param_saturation),
+                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity","N stations", "Station Saturation"])
+
+    for j in range(5):
+        dataframe["Prod_"+str(j+1)] = lines_production[j]
+        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
+        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
+    for station in range(2):
+        dataframe["Saturation_"+str(station+1)] = charging_status[station]
+    if export_df_to_csv:
+        print("Saving dataframe to csv.")
+        dataframe.to_csv(path + "dataframe.csv", index=False)
+
+    if export_df_to_feather:
+        print("Saving dataframe to feather.")
+        dataframe.to_feather(path + "dataframe.feather")
                 
 elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
     while True: 
@@ -428,6 +436,8 @@ elif findN: #This allows to understand which is the correct number of N to reach
         # Parameters' setup: This should be coherent with what tried in the isSearch result
         tugger_train_number = hyper_tugger_train_number[0]
         tugger_train_capacity = hyper_tugger_train_capacity[0]
+        charging_stations_x = [i * 0 for i in range(hyper_tugger_train_capacity[0] - 1)]  # x coordinates of the first and second charging station, respectively
+        charging_stations_y = [(i + 1) * 10 for i in range(hyper_tugger_train_capacity[0] - 1)]  # y coordinates of the first and second charging station, respectively
         ul_buffer = hyper_ul_buffer[0]
         print("Starting the procedure to find N...")
         print("Testing N:", N)
