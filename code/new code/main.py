@@ -5,6 +5,7 @@ import random
 import utils as u
 import pandas as pd
 import scipy.stats
+import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep
 import csv
@@ -44,7 +45,7 @@ battery_size = 4.8   # kWh
 verbose = False   # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
-isSearching = False  # Perform grid search
+isSearching = True  # Perform grid search
 verboseSearch = False  # Show each combination of hyperparameters
 
 
@@ -56,7 +57,7 @@ precision = 0.0125
 
 # Save output
 path = "./output/"
-export_df_to_csv = False  # Export df with collected data to csv
+export_df_to_csv = True  # Export df with collected data to csv
 export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
@@ -69,12 +70,18 @@ export_df_to_feather = False  # Export df to feather format
 
 # If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
 # Same for findN
-hyper_tugger_train_number = [4]
+hyper_tugger_train_number = [4 for i in range(10)]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2]
+hyper_n_charging_station = [2,3]
 
-
+###################
+# Data Collectors #
+###################
+buffer_cap = []
+tuggers_number = []
+n_stations = []
+average_idle_times = []
 
 ##########################################
 # List to keep track of system evolution #
@@ -375,14 +382,14 @@ class FactoryModel(Model):
 
 if isSearching:
     counting = 0
-    combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)
+    combination = len(hyper_tugger_train_capacity)*len(hyper_ul_buffer)*len(hyper_tugger_train_number)*len(hyper_n_charging_station)
     total = int(combination*n_shift*wh*3600)
     print("Starting...")
     for k in hyper_ul_buffer:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
                 for s in hyper_n_charging_station:
-                    charging_stations_x = [i*0 in range(s)]
+                    charging_stations_x = [i*0 for i in range(s)]
                     charging_stations_y = [(i+1)*10 for i in range(s)]
                     tugger_train_capacity = h
                     tugger_train_number = j
@@ -408,20 +415,22 @@ if isSearching:
                         param_saturation.append(saturation /s)
                         u.progress(int(round(counting/total*100, 0)))
                         counting += 1
+                    buffer_cap.append(k)
+                    tuggers_number.append(j)
+                    n_stations.append(s)
+                    avg_idle_time = 0
+                    avg_time_per_line = []
+                    for key,value in lines_idle.items():
+                        average_idle_times.append(value[-1])
+                    avg_idle_time = sum(avg_time_per_line)/(5*60)
+                    average_idle_times.append(avg_idle_time)
+    print("\Hyperparameter search simulation completed.")
+    print(combination, "Number of hyperparameters combinations have been performed.")
+    print("Total iterations:", total)
 
-                        print("\Hyperparameter search simulation completed.")
-                        print(combination, "Number of hyperparameters combinations have been performed.")
-                        print("Total iterations:", total)
 
-    dataframe = pd.DataFrame(zip(time, param_buff, param_tuggers, param_capacity,param_stations,param_saturation),
-                             columns=["Time", "Buffer", "Tugger N", "Tugger Capacity","N stations", "Station Saturation"])
-
-    for j in range(5):
-        dataframe["Prod_"+str(j+1)] = lines_production[j]
-        dataframe["UL_in_buffer_"+str(j+1)] = lines_buffer[j]
-        dataframe["Idle_time_"+str(j+1)] = lines_idle[j]
-    for station in range(2):
-        dataframe["Saturation_"+str(station+1)] = charging_status[station]
+    dataframe = pd.DataFrame(zip(tuggers_number,n_stations,buffer_cap,average_idle_times),
+                             columns=["Number of tuggers","Number of stations","Buffer Size","Average Idle Times[s]"])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv(path + "dataframe.csv", index=False)
