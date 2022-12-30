@@ -42,7 +42,7 @@ charging_stations_y = [10, 20]   # y coordinates of the first and second chargin
 battery_size = 4.8   # kWh
 
 # Debug parameters
-verbose = False   # Run a verbose simulation
+verbose = False  # Run a verbose simulation
 system_time_on = False   # Print system time
 check_model_output = False  # Check if data collection was successful
 isSearching = True  # Perform grid search
@@ -50,7 +50,7 @@ verboseSearch = False  # Show each combination of hyperparameters
 
 
 # Parameters to find N
-findN = True  # Set to True to find N
+findN = False # Set to True to find N
 N = 5000
 alpha = 0.05
 precision = 0.0125
@@ -70,10 +70,10 @@ export_df_to_feather = False  # Export df to feather format
 
 # If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
 # Same for findN
-hyper_tugger_train_number = [4 for i in range(10)]
+hyper_tugger_train_number = [i for i in range(15)]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
-hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2,3]
+hyper_tugger_train_capacity = [4 for i in range(10)]
+hyper_n_charging_station = [3]
 
 ###################
 # Data Collectors #
@@ -421,7 +421,7 @@ if isSearching:
                     avg_idle_time = 0
                     avg_time_per_line = []
                     for key,value in lines_idle.items():
-                        average_idle_times.append(value[-1])
+                        avg_time_per_line.append(value[-1])
                     avg_idle_time = sum(avg_time_per_line)/(5*60)
                     average_idle_times.append(avg_idle_time)
     print("\Hyperparameter search simulation completed.")
@@ -430,7 +430,7 @@ if isSearching:
 
 
     dataframe = pd.DataFrame(zip(tuggers_number,n_stations,buffer_cap,average_idle_times),
-                             columns=["Number of tuggers","Number of stations","Buffer Size","Average Idle Times[s]"])
+                             columns=["Number of tuggers","Number of stations","Buffer Size","Average Idle Times[min]"])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv(path + "dataframe.csv", index=False)
