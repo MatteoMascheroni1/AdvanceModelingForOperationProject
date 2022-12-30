@@ -56,9 +56,9 @@ alpha = 0.05
 precision = 0.0125
 
 # Save output
-path = "./output/"
+path = "./output/output_N"
 export_df_to_csv = True  # Export df with collected data to csv
-export_df_to_feather = False  # Export df to feather format
+export_df_to_feather = True  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -70,10 +70,10 @@ export_df_to_feather = False  # Export df to feather format
 
 # If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
 # Same for findN
-hyper_tugger_train_number = [4 for i in range(10)]
-hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+hyper_tugger_train_number = [7 for i in range(700)]
+hyper_ul_buffer = [[3, 3, 3, 3, 3], [4, 4, 4, 4, 4], [5, 5, 5, 5, 5]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2,3]
+hyper_n_charging_station = [2, 3, 4]
 
 ###################
 # Data Collectors #
@@ -424,13 +424,12 @@ if isSearching:
                         average_idle_times.append(value[-1])
                     avg_idle_time = sum(avg_time_per_line)/(5*60)
                     average_idle_times.append(avg_idle_time)
-    print("\Hyperparameter search simulation completed.")
+    print("\nHyperparameter search simulation completed.\n")
     print(combination, "Number of hyperparameters combinations have been performed.")
-    print("Total iterations:", total)
+    print(f"Total iterations: {total:,}")
 
-
-    dataframe = pd.DataFrame(zip(tuggers_number,n_stations,buffer_cap,average_idle_times),
-                             columns=["Number of tuggers","Number of stations","Buffer Size","Average Idle Times[s]"])
+    dataframe = pd.DataFrame(zip(tuggers_number, n_stations, buffer_cap, average_idle_times),
+                             columns=["Number of tuggers", "Number of stations", "Buffer Size", "Average Idle Times[s]"])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
         dataframe.to_csv(path + "dataframe.csv", index=False)
@@ -506,7 +505,3 @@ else:
         print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
               "combination of a parameters. The first combination of parameters was used.\n*****")
 
-# plt.plot(dataframe.Time, dataframe.Saturation_1, label="Stazione 1")
-# plt.plot(dataframe.Time, dataframe.Saturation_2, label="Stazione 2")
-# plt.legend()
-# plt.show()
