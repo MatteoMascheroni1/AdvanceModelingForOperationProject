@@ -72,9 +72,9 @@ export_df_to_feather = True  # Export df to feather format
 # Same for findN
 
 hyper_tugger_train_number = [6 for i in range(800)]
-hyper_ul_buffer = [[3, 3, 3, 3, 3], [4, 4, 4, 4, 4], [5, 5, 5, 5, 5]]
+hyper_ul_buffer = [[6, 6, 6, 6, 6]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2, 3, 4]
+hyper_n_charging_station = [2, 3, 4, 5, 6]
 
 
 ###################
@@ -407,7 +407,7 @@ if isSearching:
                         param_capacity.append(h)
                         param_tuggers.append(j)
                         param_stations.append(s)
-                        saturation= 0
+                        saturation = 0
                         for z in range(5):
                             lines_production[z].append(model.schedule_lines.agents[z].total_production)
                             lines_buffer[z].append(model.schedule_lines.agents[z].UL_in_buffer)
@@ -435,11 +435,11 @@ if isSearching:
                              columns=["Number of tuggers", "Number of stations", "Buffer Size", "Average Idle Times[min]"])
     if export_df_to_csv:
         print("Saving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe.csv", index=False)
+        dataframe.to_csv(path + "dataframe_3.csv", index=False)
 
     if export_df_to_feather:
         print("Saving dataframe to feather.")
-        dataframe.to_feather(path + "dataframe.feather")
+        dataframe.to_feather(path + "dataframe_3.feather")
                 
 elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
     while True: 
