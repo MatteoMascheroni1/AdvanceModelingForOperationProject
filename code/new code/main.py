@@ -50,15 +50,15 @@ verboseSearch = False  # Show each combination of hyperparameters
 
 
 # Parameters to find N
-findN = False # Set to True to find N
+findN = False  # Set to True to find N
 N = 5000
 alpha = 0.05
 precision = 0.0125
 
 # Save output
-path = "./output/output_N"
+path = "./output/output_N/"
 export_df_to_csv = True  # Export df with collected data to csv
-export_df_to_feather = False  # Export df to feather format
+export_df_to_feather = True  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -71,10 +71,10 @@ export_df_to_feather = False  # Export df to feather format
 # If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
 # Same for findN
 
-hyper_tugger_train_number = [i for i in range(5)]
-hyper_ul_buffer = [[3, 3, 3, 3, 3]]
-hyper_tugger_train_capacity = [4 for i in range(3)]
-hyper_n_charging_station = [2]
+hyper_tugger_train_number = [6 for i in range(800)]
+hyper_ul_buffer = [[3, 3, 3, 3, 3], [4, 4, 4, 4, 4], [5, 5, 5, 5, 5]]
+hyper_tugger_train_capacity = [4]
+hyper_n_charging_station = [2, 3, 4]
 
 
 ###################
