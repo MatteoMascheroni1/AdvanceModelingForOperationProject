@@ -5,14 +5,11 @@ import random
 import utils as u
 import pandas as pd
 import scipy.stats
-import numpy as np
-import matplotlib.pyplot as plt
-from time import sleep
 import csv
-
 import importlib
-importlib.reload(u)
 
+# Reload external modules
+importlib.reload(u)
 
 #############################
 # Read file for coordinates #
@@ -51,9 +48,9 @@ verboseSearch = False  # Show each combination of hyperparameters
 
 # Parameters to find N
 findN = False  # Set to True to find N
-N = 5000
+N = 1
 alpha = 0.05
-precision = 0.0125
+precision = 0.1
 
 # Save output
 path = "./output/output_N/"
@@ -72,7 +69,7 @@ export_df_to_feather = True  # Export df to feather format
 # Same for findN
 
 hyper_tugger_train_number = [6 for i in range(800)]
-hyper_ul_buffer = [[7, 7, 7, 7, 7], [8, 8, 8, 8, 8]]
+hyper_ul_buffer = [[3, 3, 4, 5, 5], [3, 4, 6, 7, 7]]
 hyper_tugger_train_capacity = [4]
 hyper_n_charging_station = [2, 3, 4, 5, 6]
 
@@ -422,28 +419,28 @@ if isSearching:
                     n_stations.append(s)
                     avg_idle_time = 0
                     avg_time_per_line = []
-                    for key,value in lines_idle.items():
+                    for key, value in lines_idle.items():
                         avg_time_per_line.append(value[-1])
                     avg_idle_time = sum(avg_time_per_line)/(5*60)
                     average_idle_times.append(avg_idle_time)
-    print("\nHyperparameter search simulation completed.\n")
-    print(combination, "Number of hyperparameters combinations have been performed.")
+    print("\n\nHyperparameter search simulation completed.")
+    print(f"{combination:,} hyperparameters combinations have been performed.")
     print(f"Total iterations: {total:,}")
 
 
     dataframe = pd.DataFrame(zip(tuggers_number, n_stations, buffer_cap, average_idle_times),
                              columns=["Number of tuggers", "Number of stations", "Buffer Size", "Average Idle Times[min]"])
     if export_df_to_csv:
-        print("Saving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe_4.csv", index=False)
+        print("\nSaving dataframe to csv.")
+        dataframe.to_csv(path + "dataframe_5.csv", index=False)
 
     if export_df_to_feather:
-        print("Saving dataframe to feather.")
-        dataframe.to_feather(path + "dataframe_4.feather")
+        print("\nSaving dataframe to feather.")
+        dataframe.to_feather(path + "dataframe_5.feather")
                 
 elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
     while True: 
-        mean_idle_times = [] # List of means
+        mean_idle_times = []  # List of means
         # Parameters' setup: This should be coherent with what tried in the isSearch result
         tugger_train_number = hyper_tugger_train_number[0]
         tugger_train_capacity = hyper_tugger_train_capacity[0]
@@ -455,11 +452,11 @@ elif findN: #This allows to understand which is the correct number of N to reach
         for q in range(N):
             # print('Simulation run', q)
             model = FactoryModel(seed=seed)
-            idle_times = [] # Creating a list of idle_times for each run
+            idle_times = []  # Creating a list of idle_times for each run
             for i in range(int(n_shift*wh*3600)):
                 model.step()  
-                for w in range(5):
-                    idle_times.append(model.schedule_lines.agents[w].idle_time)
+            for w in range(5):
+                idle_times.append(model.schedule_lines.agents[w].idle_time)
             mean_idle_times.append(statistics.mean(idle_times))
         s = statistics.variance(mean_idle_times)
         quantile = scipy.stats.t.ppf(1 - alpha / 2, N - 1)
@@ -470,7 +467,7 @@ elif findN: #This allows to understand which is the correct number of N to reach
                 writer.writerow(mean_idle_times) 
             break
         else:
-            N = N + 500
+            N = N + 1
             
     print("N is " + str(N))
 
