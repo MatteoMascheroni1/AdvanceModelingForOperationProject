@@ -48,7 +48,7 @@ verboseSearch = False  # Show each combination of hyperparameters
 ########################################
 # Decide what to do with the script :) #
 ########################################
-isSearching = False  # Perform grid search
+isSearching = True # Perform grid search
 runWithSelectedN = False  # Run with selected N
 findN = False  # Set to True to find N
 
@@ -61,9 +61,9 @@ alpha = 0.05
 precision = 0.1
 
 # Save output
-path = "./output/output_N/"
+path = "./output/"
 export_df_to_csv = True  # Export df with collected data to csv
-export_df_to_feather = False  # Export df to feather format
+export_df_to_feather = True  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -80,7 +80,7 @@ export_df_to_feather = False  # Export df to feather format
 hyper_tugger_train_number = [6 for i in range(800)]
 hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [4, 5]
+hyper_n_charging_station = [2, 3, 4, 5, 6]
 
 
 ###################
@@ -290,7 +290,6 @@ class Train(Agent):
                 self.check_charge()
             if self.need_to_charge:
                 self.charging()
-                self.move()
             else:
                 self.move()
 
@@ -503,11 +502,11 @@ elif isSearching:
 
     if export_df_to_csv:
         print("\nSaving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe.csv", index=False)
+        dataframe.to_csv(path + "charging_stations_dataframe.csv", index=False)
 
     if export_df_to_feather:
         print("\nSaving dataframe to feather.")
-        dataframe.to_feather(path + "dataframe.feather")
+        dataframe.to_feather(path + "charging_stations_dataframe.feather")
 
 elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
     while True: 

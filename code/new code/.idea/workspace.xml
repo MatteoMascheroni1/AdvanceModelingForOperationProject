@@ -5,22 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d9f91c1a-64a7-4641-9082-bb2ea3028ac8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../../HOW-TO.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/output/output_N/final_dataframe.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/.ipynb_checkpoints/simulation_analysis-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/output/.ipynb_checkpoints/simulation_analysis-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe.feather" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_2.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_2.feather" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_3.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_3.feather" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_4.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/dataframe_4.feather" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/output_N/statistics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/output/output_N/statistics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output/simulation_analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/output/simulation_analysis.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,28 +24,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="node.js.detected.package.eslint" value="true" />
-    <property name="node.js.detected.package.tslint" value="true" />
-    <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="node.js.selected.package.tslint" value="(autodetect)" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "node.js.selected.package.tslint": "(autodetect)"
+  }
+}]]></component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="new code" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/miniforge3/envs/simOps/bin/python" />
+      <option name="SDK_HOME" value="C:\Users\masch\anaconda3\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
