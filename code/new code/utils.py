@@ -172,7 +172,20 @@ def compute_charging_time(charge: dict, remaining_energy: float, tot_cap: float)
     return time
 
 
+def check_behavior(*args):
+    """
+    Function to perform a true XOR
+    """
+    return sum(args) == 1 or sum(args)==0
 
 
+def check_combination(*args):
+    """
+    Function that return True if the more than one parameter was declared in hyperparameters lists.
+    """
+    s_ = 0
+    for a in args:
+        s_ += len(a)
+    return s_ > 3
 
 
