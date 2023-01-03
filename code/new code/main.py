@@ -48,11 +48,12 @@ verboseSearch = False  # Show each combination of hyperparameters
 ########################################
 # Decide what to do with the script :) #
 ########################################
-isSearching = True # Perform grid search
-runWithSelectedN = False  # Run with selected N
+isSearching = False  # Perform grid search
+runWithSelectedN = True  # Run with selected N
 findN = False  # Set to True to find N
 
-assert u.check_behavior(isSearching, runWithSelectedN, findN), "Only one between isSearching, runWithSelectedN and findN can be set to True."
+assert u.check_behavior(isSearching, runWithSelectedN, findN), "Only one between isSearching, runWithSelectedN and " \
+                                                               "findN can be set to True."
 
 
 # Parameters to find N
@@ -61,9 +62,9 @@ alpha = 0.05
 precision = 0.1
 
 # Save output
-path = "./output/"
+path = "./output/output_N/"
 export_df_to_csv = True  # Export df with collected data to csv
-export_df_to_feather = True  # Export df to feather format
+export_df_to_feather = False  # Export df to feather format
 # Note that to have system time both verbose and system_time_on must be True
 # Note that check_model_output is working properly only when isSearching = True
 
@@ -73,15 +74,10 @@ export_df_to_feather = True  # Export df to feather format
 # Model hyperparameters #
 #########################
 
-# If isSearching = False and more than 1 parameter is specified, just the first element of the list will be used
-# Same for findN
-
-
-hyper_tugger_train_number = [6 for i in range(800)]
-hyper_ul_buffer = [[3, 3, 3, 3, 3]]
+hyper_tugger_train_number = [6 for i in range(801)]
+hyper_ul_buffer = [[6, 6, 6, 6, 6], [7, 7, 7, 7, 7], [8, 8, 8, 8, 8]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2, 3, 4, 5, 6]
-
+hyper_n_charging_station = [5, 6]
 
 ###################
 # Data Collectors #
@@ -105,6 +101,7 @@ param_tuggers = []
 param_stations = []
 param_saturation = []
 time = []
+
 
 class Train(Agent):
     def __init__(self, unique_id, model):
@@ -148,8 +145,8 @@ class Train(Agent):
         if self.remaining_energy < self.charge_threshold():
             # One of the charging stations is randomly selected
             # self.selected_charging_station = random.choice(range(len(charging_stations_x)))
-            self.selected_charging_station = self.model.schedule_stations.agents.index(min(self.model.schedule_stations.agents, 
-                                                                                           key=lambda x:x.waiting_time))
+            self.selected_charging_station = self.model.schedule_stations.agents.index(
+                min(self.model.schedule_stations.agents, key=lambda x: x.waiting_time))
             self.next_stop_x = charging_stations_x[self.selected_charging_station]
             self.next_stop_y = charging_stations_y[self.selected_charging_station]
             self.need_to_charge = True
@@ -431,8 +428,8 @@ if runWithSelectedN:
                         avg_time_per_line.append(value[-1])
                     avg_idle_time = sum(avg_time_per_line)/(5*60)
                     average_idle_times.append(avg_idle_time)
-    print("\n\nHyperparameter search simulation completed.")
-    print(f"{combination:,} hyperparameters combinations have been performed.")
+    print("\n\nHyper parameter search simulation completed.")
+    print(f"{combination:,} hyper parameters combinations have been performed.")
     print(f"Total iterations: {total:,}")
 
 
@@ -440,11 +437,11 @@ if runWithSelectedN:
                              columns=["Number of tuggers", "Number of stations", "Buffer Size", "Average Idle Times[min]"])
     if export_df_to_csv:
         print("\nSaving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe_5.csv", index=False)
+        dataframe.to_csv(path + "dataframe_3.csv", index=False)
 
     if export_df_to_feather:
         print("\nSaving dataframe to feather.")
-        dataframe.to_feather(path + "dataframe_5.feather")
+        dataframe.to_feather(path + "dataframe.feather")
 
 elif isSearching:
     counting = 0
@@ -456,8 +453,10 @@ elif isSearching:
         for j in hyper_tugger_train_number:
             for h in hyper_tugger_train_capacity:
                 for s in hyper_n_charging_station:
-                    charging_stations_x = [i * 0 for i in range(s)]  # x coordinates of the first and second charging station, respectively
-                    charging_stations_y = [(i + 1) * 10 for i in range(s)]  # y coordinates of the first and second charging station, respectively
+                    # x coordinates of the first and second charging station, respectively
+                    charging_stations_x = [i * 0 for i in range(s)]
+                    # y coordinates of the first and second charging station, respectively
+                    charging_stations_y = [(i + 1) * 10 for i in range(s)]
                     tugger_train_capacity = h
                     tugger_train_number = j
                     ul_buffer = k
@@ -502,20 +501,22 @@ elif isSearching:
 
     if export_df_to_csv:
         print("\nSaving dataframe to csv.")
-        dataframe.to_csv(path + "charging_stations_dataframe.csv", index=False)
+        dataframe.to_csv(path + "dataframe.csv", index=False)
 
     if export_df_to_feather:
         print("\nSaving dataframe to feather.")
-        dataframe.to_feather(path + "charging_stations_dataframe.feather")
+        dataframe.to_feather(path + "dataframe.feather")
 
-elif findN: #This allows to understand which is the correct number of N to reach a reasonable half-width
+elif findN:  # This allows to understand which is the correct number of N to reach a reasonable half-width
     while True: 
         mean_idle_times = []  # List of means
         # Parameters' setup: This should be coherent with what tried in the isSearch result
         tugger_train_number = hyper_tugger_train_number[0]
         tugger_train_capacity = hyper_tugger_train_capacity[0]
-        charging_stations_x = [i * 0 for i in range(hyper_n_charging_station[0])]  # x coordinates of the first and second charging station, respectively
-        charging_stations_y = [(i + 1) * 10 for i in range(hyper_n_charging_station[0])]  # y coordinates of the first and second charging station, respectively
+        # x coordinates of the first and second charging station, respectively
+        charging_stations_x = [i * 0 for i in range(hyper_n_charging_station[0])]
+        # y coordinates of the first and second charging station, respectively
+        charging_stations_y = [(i + 1) * 10 for i in range(hyper_n_charging_station[0])]
         ul_buffer = hyper_ul_buffer[0]
         print("Starting the procedure to find N...")
         print("Testing N:", N)
@@ -542,8 +543,8 @@ elif findN: #This allows to understand which is the correct number of N to reach
     print("N is " + str(N))
 
     if u.check_combination(hyper_tugger_train_number, hyper_ul_buffer, hyper_tugger_train_capacity):
-       print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
-               "combination of a parameters. The first combination of parameters was used.\n*****")
+        print("*****\nWarning: you decided to run the model just for one configuration but you provided more than one "
+              "combination of a parameters. The first combination of parameters was used.\n*****")
 
 
 else:
