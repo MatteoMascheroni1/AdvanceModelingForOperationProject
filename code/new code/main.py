@@ -72,7 +72,7 @@ export_df_to_feather = True  # Export df to feather format
 # Same for findN
 
 hyper_tugger_train_number = [6 for i in range(800)]
-hyper_ul_buffer = [[7, 7, 7, 7, 7], [8, 8, 8, 8, 8]]
+hyper_ul_buffer = [[3, 3, 3, 3, 3]]
 hyper_tugger_train_capacity = [4]
 hyper_n_charging_station = [2, 3, 4, 5, 6]
 
@@ -106,7 +106,7 @@ class Train(Agent):
         self.battery_size = battery_size   # [kWh]
 
         # initial battery charge is 60% and 100% of the maximum
-        self.remaining_energy = battery_size * random.uniform(0.6, 1)   # [kWh]
+        self.remaining_energy = battery_size * random.uniform(0.05, 0.98)   # [kWh]
         self.capacity = tugger_train_capacity   # Maximum number of unit loads which can be loaded on a tugger train
         self.load = 0   # Current load of the tugger train
 
@@ -447,8 +447,8 @@ elif findN: #This allows to understand which is the correct number of N to reach
         # Parameters' setup: This should be coherent with what tried in the isSearch result
         tugger_train_number = hyper_tugger_train_number[0]
         tugger_train_capacity = hyper_tugger_train_capacity[0]
-        charging_stations_x = [i * 0 for i in range(hyper_tugger_train_capacity[0] - 1)]  # x coordinates of the first and second charging station, respectively
-        charging_stations_y = [(i + 1) * 10 for i in range(hyper_tugger_train_capacity[0] - 1)]  # y coordinates of the first and second charging station, respectively
+        charging_stations_x = [i * 0 for i in range(hyper_n_charging_station[0])]  # x coordinates of the first and second charging station, respectively
+        charging_stations_y = [(i + 1) * 10 for i in range(hyper_n_charging_station[0])]  # y coordinates of the first and second charging station, respectively
         ul_buffer = hyper_ul_buffer[0]
         print("Starting the procedure to find N...")
         print("Testing N:", N)
@@ -483,6 +483,8 @@ else:
     tugger_train_number = hyper_tugger_train_number[0]
     tugger_train_capacity = hyper_tugger_train_capacity[0]
     ul_buffer = hyper_ul_buffer[0]
+    charging_stations_x = [i * 0 for i in range(hyper_n_charging_station[0])]
+    charging_stations_y = [(i + 1) * 10 for i in range(hyper_n_charging_station[0])]
     model = FactoryModel(seed=seed)
 
     for i in range(int(n_shift*wh*3600)):  # Seconds
