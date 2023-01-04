@@ -47,17 +47,17 @@ This simulation type runs the model with an increasing number N to find the N th
 
 This simulation type runs the model just once with all the possible combination of parameters give . At the end, if `export_df_to_csv=True` the dataframe will be exported as csv file, otherwise if  `export_df_to_feather=True` the dataframe will be exported as a feather file. The path can be defined at the beginning of the script. In the table below there are all the attributes of the dataframe.
 
-| Name            | Type | Description                                            |
-| --------------- | ---- | ------------------------------------------------------ |
-| Time            | Int  | Relative time of the combination of parameters         |
-| Tugger N        | Int  | Number of tuggers                                      |
-| Buffer          | List | List of buffer sizes line by line (ordered)            |
-| Tugger Capacity | Int  | Capacity of tuggers                                    |
-| N Stations      | Int  | Number of charging stations                            |
-| Charging Status | List | List with charging status station by station (ordered) |
-| Prod_*          | Int  | Total production volume at each instant                |
-| UL_in_buffer_*  | Int  | Units in buffer at each instant                        |
-| Idle_time_*     | Int  | Total comulative idle time at each instant in seconds  |
+| Name            | Type | Description                                                  |
+| --------------- | ---- | ------------------------------------------------------------ |
+| Time            | Int  | Relative time of the combination of parameters               |
+| Tugger N        | Int  | Number of tuggers                                            |
+| Buffer          | List | List of buffer sizes line by line (ordered)                  |
+| Tugger Capacity | Int  | Capacity of tuggers                                          |
+| N Stations      | Int  | Number of charging stations                                  |
+| Charging Status | List | List with charging status station by station (ordered). `False` if at Time the charging station is free, `True` otherwise. |
+| Prod_*          | Int  | Total production until Time                                  |
+| UL_in_buffer_*  | Int  | Units in buffer at Time                                      |
+| Idle_time_*     | Int  | Total idle time untill Time                                  |
 
 Replace the `*` with a number from 1 to 5 
 
