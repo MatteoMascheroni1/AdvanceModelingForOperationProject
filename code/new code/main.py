@@ -75,9 +75,9 @@ export_df_to_feather = False  # Export df to feather format
 #########################
 
 hyper_tugger_train_number = [6 for i in range(801)]
-hyper_ul_buffer = [[6, 6, 6, 6, 6], [7, 7, 7, 7, 7], [8, 8, 8, 8, 8]]
+hyper_ul_buffer = [[3, 3, 4, 5, 5], [4, 5, 3, 4, 5], [4, 4, 6, 6, 6]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [5, 6]
+hyper_n_charging_station = [2, 3, 4]
 
 ###################
 # Data Collectors #
@@ -168,9 +168,9 @@ class Train(Agent):
 
             else:
                 if verbose:
-                    print("\n\n", self.unique_id + " going to line", self.next_line,
+                    print("\n\n", str(self.unique_id) + " going to line", self.next_line,
                           "\n- Travelled distance:", distance_next_stop, "m", "\n- Carried weight: ", self.weight, "kg",
-                          "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + self.unique_id,
+                          "\n- Task endtime:", round(self.task_endtime / 3600, 2), "h", "\n\n" + str(self.unique_id),
                           "at line", self.next_line)
             self.task_endtime += u.compute_time(distance_next_stop,
                                                 speed=u.compute_speed(self.weight),
@@ -264,7 +264,6 @@ class Train(Agent):
         self.next_stop_y = lines_output_points_y[self.next_line]
 
     def charge_threshold(self):
-        # consumo per viaggare carico al massimo, consume per caricare e scaricare tutti i pallet,
         time = 0
         line_output_for_charging_x = [0]+lines_output_points_x+[0]
         line_output_for_charging_y = [80]+lines_output_points_y+[80]
@@ -437,7 +436,7 @@ if runWithSelectedN:
                              columns=["Number of tuggers", "Number of stations", "Buffer Size", "Average Idle Times[min]"])
     if export_df_to_csv:
         print("\nSaving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe_3.csv", index=False)
+        dataframe.to_csv(path + "dataframe_5.csv", index=False)
 
     if export_df_to_feather:
         print("\nSaving dataframe to feather.")
