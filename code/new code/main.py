@@ -75,10 +75,10 @@ export_df_to_feather = False  # Export df to feather format
 # Model hyperparameters #
 #########################
 
-hyper_tugger_train_number = [6 for i in range(801)]
-hyper_ul_buffer = [[3, 3, 4, 5, 5], [4, 5, 3, 4, 5]]
+hyper_tugger_train_number = [3, 4, 5]
+hyper_ul_buffer = [[3, 3, 3, 3, 3], [7, 7, 7, 7, 7], [8, 8, 8, 8, 8]]
 hyper_tugger_train_capacity = [4]
-hyper_n_charging_station = [2, 3]
+hyper_n_charging_station = [2 for i in range(801)]
 
 ##########################################
 # List to keep track of system evolution #
@@ -430,7 +430,7 @@ if runWithSelectedN:
                                       "Average Idle Times[min]"])
     if export_df_to_csv:
         print("\nSaving dataframe to csv.")
-        dataframe.to_csv(path + "dataframe.csv", index=False)
+        dataframe.to_csv(path + "cicomplichiamo_1.csv", index=False)
 
     if export_df_to_feather:
         print("\nSaving dataframe to feather.")
